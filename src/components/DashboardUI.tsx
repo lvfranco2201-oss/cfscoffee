@@ -180,9 +180,10 @@ export default function DashboardUI({
           ))}
         </div>
       )}
-      <header
+      <header className={`${styles.photoBanner} glass-card`}
         style={{
           position: 'relative',
+          zIndex: 50,
           width: '100%',
           minHeight: '180px',
           borderRadius: '20px',
