@@ -90,42 +90,50 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       {/* LOGO EMBLEMA */}
-      <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem 0 1.5rem 0' }}>
+      <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'center', padding: '0 0 1rem 0' }}>
         <Image
           src="/logo-cuadrado.png"
           alt="CFS Emblem"
-          width={180}
-          height={180}
+          width={130}
+          height={130}
           className={styles.heroLogo}
           priority
         />
       </div>
 
+      {/* MENÚ PRINCIPAL */}
       <nav className={styles.nav}>
         <div className={styles.navSection}>MENÚ PRINCIPAL</div>
-        {navItems.map((item) => {
-          const isActive = pathname === item.path;
-          return (
-            <Link
-              key={item.name}
-              href={item.path}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </Link>
-          );
-        })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link
+                key={item.name}
+                href={item.path}
+                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                style={{ padding: '10px 14px' }}
+              >
+                <div style={{ color: isActive ? 'var(--cfs-gold)' : 'var(--cfs-slate)' }}>
+                  {item.icon}
+                </div>
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
+
+      <div style={{ flexGrow: 1 }} />
 
       {/* CUADRANTE INFERIOR */}
       <div className={styles.bottomNav}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.8rem' }}>
           <Image
             src="/logo-largo.png"
             alt="CFS Coffee for the soul"
-            width={180}
-            height={55}
+            width={150}
+            height={40}
             style={{ objectFit: 'contain', filter: 'brightness(0) invert(1) drop-shadow(0px 2px 8px rgba(255,255,255,0.15))' }}
             priority
           />
