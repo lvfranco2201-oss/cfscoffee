@@ -84,12 +84,12 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: t('sidebar.dashboard'),        path: '/',           icon: <BarChart3 size={20} /> },
-    { name: t('sidebar.ventas'),           path: '/ventas',     icon: <TrendingUp size={20} /> },
-    { name: t('sidebar.sucursales'),       path: '/sucursales', icon: <Store size={20} /> },
-    { name: t('sidebar.costos_laborales'), path: '/inventario', icon: <Package size={20} /> },
-    { name: t('sidebar.clientes'),         path: '/clientes',   icon: <Users size={20} /> },
-    { name: t('sidebar.productos'),        path: '/productos',  icon: <Coffee size={20} /> },
+    { name: t('sidebar.dashboard'),        path: '/',           icon: <BarChart3 size={20} />, enabled: true  },
+    { name: t('sidebar.ventas'),           path: '/ventas',     icon: <TrendingUp size={20} />, enabled: true  },
+    { name: t('sidebar.sucursales'),       path: '/sucursales', icon: <Store size={20} />,     enabled: false },
+    { name: t('sidebar.costos_laborales'), path: '/inventario', icon: <Package size={20} />,   enabled: false },
+    { name: t('sidebar.clientes'),         path: '/clientes',   icon: <Users size={20} />,     enabled: false },
+    { name: t('sidebar.productos'),        path: '/productos',  icon: <Coffee size={20} />,    enabled: false },
   ];
 
   return (
@@ -111,6 +111,38 @@ export default function Sidebar() {
         <div className={styles.navSection}>{t('sidebar.menu_principal')}</div>
         {navItems.map((item) => {
           const isActive = pathname === item.path;
+
+          if (!item.enabled) {
+            // Disabled / coming-soon item — no link, just visual
+            return (
+              <div
+                key={item.path}
+                className={styles.navItem}
+                style={{ opacity: 0.4, cursor: 'not-allowed', position: 'relative' }}
+                title={locale === 'en' ? 'Coming Soon' : 'Próximamente'}
+              >
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+                  <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
+                </div>
+                <span className={styles.navItemText}>{item.name}</span>
+                {/* Pill visible on wider sidebar */}
+                <span style={{
+                  marginLeft: 'auto',
+                  fontSize: '0.6rem', fontWeight: 700,
+                  letterSpacing: '0.05em', textTransform: 'uppercase',
+                  background: 'rgba(221,167,86,0.12)',
+                  color: 'rgba(221,167,86,0.6)',
+                  border: '1px solid rgba(221,167,86,0.15)',
+                  borderRadius: '6px', padding: '2px 6px',
+                  whiteSpace: 'nowrap',
+                  display: 'var(--sidebar-pill-display, none)',
+                }}>
+                  {locale === 'en' ? 'Soon' : 'Pronto'}
+                </span>
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.path}
@@ -121,7 +153,6 @@ export default function Sidebar() {
                 {isActive && (
                   <span style={{ position: 'absolute', inset: -4, background: 'rgba(221, 167, 86, 0.4)', filter: 'blur(8px)', borderRadius: '50%', zIndex: 0 }} />
                 )}
-                {/* Asegurar que el icono quede delante del resplandor */}
                 <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
               </div>
               <span className={styles.navItemText}>{item.name}</span>

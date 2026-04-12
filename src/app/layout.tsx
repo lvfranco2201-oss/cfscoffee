@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
+import ConditionalLayout from '@/components/ConditionalLayout';
 
 export const viewport: Viewport = {
   themeColor: '#070B14',
@@ -38,12 +38,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <LanguageProvider>
-            <div className="layout-container">
-              <Sidebar />
-              <main className="main-content">
-                {children}
-              </main>
-            </div>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
           </LanguageProvider>
         </ThemeProvider>
       </body>

@@ -137,6 +137,11 @@
   50% { transform: translateY(-6px); }
 }
 
+/* Show "Soon" pill only on desktop sidebar */
+.nav {
+  --sidebar-pill-display: inline-block;
+}
+
 /* =========================================
    PWA BOTTOM TAB BAR (MOBILE)
    ========================================= */
@@ -150,6 +155,7 @@
     align-items: center;
     padding: 0.5rem 0.5rem;
     gap: 2px;
+    --sidebar-pill-display: none;
   }
   .navItem {
     flex-direction: column;

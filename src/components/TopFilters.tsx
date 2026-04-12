@@ -98,7 +98,7 @@ export default function TopFilters({
   const handleStore = (v: string) => { setStore(v); onStoreChange(v); }
   const handleDate = (v: string) => { 
     if (v !== 'today') {
-      alert("🚧 El motor de cubos OLAP para fechas históricas está en fase de despliegue. Por seguridad financiera temporalmente solo se cargan los datos del último cierre (Cierre Actual).");
+      alert(t('dashboard.date_olap_alert'));
       return;
     }
     setDate(v); 
@@ -112,11 +112,11 @@ export default function TopFilters({
 
   const dateOptions = [
     { id: 'today', label: t('dashboard.current_close') },
-    { id: 'yesterday', label: 'Ayer' },
-    { id: 'last_7', label: 'Últimos 7 Días' },
-    { id: 'last_30', label: 'Últimos 30 Días' },
+    { id: 'yesterday', label: t('dashboard.date_yesterday') },
+    { id: 'last_7', label: t('dashboard.date_last_7') },
+    { id: 'last_30', label: t('dashboard.date_last_30') },
     { id: 'ytd', label: 'YTD' },
-    { id: 'custom', label: 'Personalizado...' },
+    { id: 'custom', label: t('dashboard.date_custom') },
   ];
 
   return (

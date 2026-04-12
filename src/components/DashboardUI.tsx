@@ -20,7 +20,8 @@ const DashboardMap = dynamic(() => import('./MapWrapper'), {
   ssr: false,
   loading: () => (
     <div style={{ minWidth: 0, minHeight: 0, height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-      Inicializando Radar de Operaciones...
+      {/* DashboardMap loads eagerly — static loading text uses a deferred ref via closure */}
+      Initializing...
     </div>
   ),
 });
@@ -139,15 +140,15 @@ export default function DashboardUI({
 
   if (avg30.avgNetSales > 0) {
     const pct = (avg30.avgNetSales - kpis.totalNetSales) / avg30.avgNetSales;
-    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: 'Ventas Netas', current: kpis.totalNetSales, avg: avg30.avgNetSales, pctDrop: pct * 100 });
+    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: t('dashboard.anomaly_net_sales'), current: kpis.totalNetSales, avg: avg30.avgNetSales, pctDrop: pct * 100 });
   }
   if (avg30.avgGuests > 0) {
     const pct = (avg30.avgGuests - kpis.totalGuests) / avg30.avgGuests;
-    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: 'Clientes', current: kpis.totalGuests, avg: avg30.avgGuests, pctDrop: pct * 100 });
+    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: t('dashboard.anomaly_customers'), current: kpis.totalGuests, avg: avg30.avgGuests, pctDrop: pct * 100 });
   }
   if (avg30.avgOrders > 0) {
     const pct = (avg30.avgOrders - kpis.totalOrders) / avg30.avgOrders;
-    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: 'Órdenes', current: kpis.totalOrders, avg: avg30.avgOrders, pctDrop: pct * 100 });
+    if (pct > ANOMALY_THRESHOLD) anomalies.push({ metric: t('dashboard.anomaly_orders'), current: kpis.totalOrders, avg: avg30.avgOrders, pctDrop: pct * 100 });
   }
 
   return (
@@ -172,10 +173,10 @@ export default function DashboardUI({
               <AlertTriangle size={18} style={{ color: 'var(--danger)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '0.88rem' }}>
-                  ⚠ {a.metric} {a.pctDrop.toFixed(0)}% por debajo del promedio de 30 días
+                  ⚠ {a.metric} {a.pctDrop.toFixed(0)}{t('dashboard.anomaly_below_avg')}
                 </span>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '8px' }}>
-                  Hoy: {typeof a.current === 'number' && a.current < 1000 ? Math.round(a.current).toLocaleString() : fmtShort(a.current as number)} · Prom 30d: {typeof a.avg === 'number' && a.avg < 1000 ? Math.round(a.avg).toLocaleString() : fmtShort(a.avg as number)}
+                  {t('dashboard.anomaly_today')} {typeof a.current === 'number' && a.current < 1000 ? Math.round(a.current).toLocaleString() : fmtShort(a.current as number)} · {t('dashboard.anomaly_avg30')} {typeof a.avg === 'number' && a.avg < 1000 ? Math.round(a.avg).toLocaleString() : fmtShort(a.avg as number)}
                 </span>
               </div>
             </div>
@@ -280,11 +281,11 @@ export default function DashboardUI({
           href="/ventas"
           icon={<DollarSign size={22} />}
           iconStyle={{ background: 'var(--cfs-gold-dim)', color: 'var(--cfs-gold)' }}
-          badge="Netas"
+          badge={t('dashboard.badge_net')}
           badgeStyle={{ background: 'rgba(221,167,86,0.12)', color: 'var(--cfs-gold)', borderColor: 'rgba(221,167,86,0.25)' }}
           value={fmt(currentKpis.totalNetSales)}
           label={t('dashboard.net_sales')}
-          sub={`Bruto: ${fmt(currentKpis.totalGrossSales)}`}
+          sub={`${t('dashboard.gross_prefix')} ${fmt(currentKpis.totalGrossSales)}`}
           WatermarkIcon={DollarSign}
         />
 
@@ -293,7 +294,7 @@ export default function DashboardUI({
           href="/clientes"
           icon={<Users size={22} />}
           iconStyle={{ background: 'rgba(46,202,127,0.12)', color: 'var(--success)' }}
-          badge={`${currentStoresData.length} tiendas`}
+          badge={`${currentStoresData.length} ${t('dashboard.badge_stores')}`}
           badgeStyle={{}}
           value={currentKpis.totalGuests.toLocaleString()}
           label={t('dashboard.customers')}
@@ -330,7 +331,7 @@ export default function DashboardUI({
           iconStyle={{ background: 'rgba(239,68,68,0.12)', color: 'var(--danger)' }}
           value={fmt(currentKpis.totalDiscounts)}
           label={t('dashboard.voids_refunds')}
-          sub={`Voids/Refunds: ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
+          sub={`${t('dashboard.voids_prefix')} ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
           WatermarkIcon={AlertTriangle}
         />
 
@@ -339,7 +340,7 @@ export default function DashboardUI({
           href="/inventario"
           icon={<DollarSign size={22} />}
           iconStyle={{ background: 'rgba(239,68,68,0.1)', color: 'var(--danger)' }}
-          badge={`${laborPct.toFixed(1)}% ventas`}
+          badge={`${laborPct.toFixed(1)}${t('dashboard.badge_of_sales')}`}
           badgeStyle={{
             background: laborPct > 30 ? 'rgba(239,68,68,0.15)' : 'rgba(46,202,127,0.12)',
             color: laborPct > 30 ? 'var(--danger)' : 'var(--success)',
@@ -362,9 +363,9 @@ export default function DashboardUI({
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} style={{ color: 'var(--cfs-gold)' }} />
-                Flujo de Ventas por Hora
+                {t('dashboard.hourly_flow_title')}
               </div>
-              <div className={styles.cardSubtitle}>Consolidado de todas las sucursales</div>
+              <div className={styles.cardSubtitle}>{t('dashboard.hourly_flow_subtitle')}</div>
             </div>
             {bestHour && (
               <div style={{
@@ -372,7 +373,7 @@ export default function DashboardUI({
                 border: '1px solid rgba(221,167,86,0.2)',
                 borderRadius: 10, padding: '5px 14px', textAlign: 'center',
               }}>
-                <div style={{ fontSize: '0.68rem', color: 'var(--cfs-gold)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Hora Pico</div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--cfs-gold)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('dashboard.peak_hour')}</div>
                 <div style={{ fontFamily: 'Outfit', fontWeight: 800, color: 'var(--cfs-gold)', fontSize: '1rem' }}>{bestHour.time}</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fmtShort(bestHour.ventas)}</div>
               </div>
@@ -399,8 +400,8 @@ export default function DashboardUI({
                 <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '12px', color: 'var(--text-main)', boxShadow: 'var(--shadow-card)', fontSize: '0.82rem' }}
                   formatter={(val: any, name: any) => {
-                    if (name === 'ventas') return [`$${val.toLocaleString()}`, 'Ventas Netas'];
-                    if (name === 'clientes') return [val.toLocaleString(), 'Clientes'];
+                    if (name === 'ventas') return [`$${val.toLocaleString()}`, t('dashboard.tooltip_net_sales')];
+                    if (name === 'clientes') return [val.toLocaleString(), t('dashboard.tooltip_customers')];
                     return [val, name];
                   }}
                 />
@@ -413,10 +414,10 @@ export default function DashboardUI({
           {/* Stat summary row */}
           <div className={styles.statRow} style={{ marginTop: '1rem', marginBottom: 0, paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
             {[
-              { label: 'Horas Activas', value: peakHours.length.toString() },
-              { label: 'Prom. por Hora',  value: fmtShort(peakHours.length > 0 ? kpis.totalNetSales / peakHours.length : 0) },
-              { label: 'Órdenes / Hora',  value: peakHours.length > 0 ? (kpis.totalOrders / peakHours.length).toFixed(0) : '—' },
-              { label: 'Clientes / Hora', value: peakHours.length > 0 ? (kpis.totalGuests / peakHours.length).toFixed(0) : '—' },
+              { label: t('dashboard.active_hours'), value: peakHours.length.toString() },
+              { label: t('dashboard.avg_per_hour'),  value: fmtShort(peakHours.length > 0 ? kpis.totalNetSales / peakHours.length : 0) },
+              { label: t('dashboard.orders_per_hour'),  value: peakHours.length > 0 ? (kpis.totalOrders / peakHours.length).toFixed(0) : '—' },
+              { label: t('dashboard.customers_per_hour'), value: peakHours.length > 0 ? (kpis.totalGuests / peakHours.length).toFixed(0) : '—' },
             ].map(s => (
               <div key={s.label} className={styles.statItem}>
                 <div className={styles.statValue}>{s.value}</div>
@@ -430,9 +431,9 @@ export default function DashboardUI({
         <div className={`glass-card ${styles.col4}`}>
           <div className={styles.cardTitle} style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <WalletCards size={16} style={{ color: 'var(--cfs-gold)' }} />
-            Métodos de Pago
+            {t('dashboard.payment_methods_title')}
           </div>
-          <div className={styles.cardSubtitle} style={{ marginBottom: '1.2rem' }}>Distribución del ingreso</div>
+          <div className={styles.cardSubtitle} style={{ marginBottom: '1.2rem' }}>{t('dashboard.payment_methods_subtitle')}</div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {/* Donut */}
@@ -471,7 +472,7 @@ export default function DashboardUI({
                 </div>
               ))}
               {paymentMethods.length === 0 && (
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sin datos de pagos para este día.</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('dashboard.no_payment_data')}</p>
               )}
             </div>
           </div>
@@ -482,25 +483,25 @@ export default function DashboardUI({
               <div className={styles.scorecardValue} style={{ color: 'var(--cfs-gold)', fontSize: '1.35rem' }}>
                 {fmt(totalTips)}
               </div>
-              <div className={styles.scorecardLabel}>Propinas</div>
+              <div className={styles.scorecardLabel}>{t('dashboard.scorecard_tips')}</div>
             </div>
             <div className={styles.scorecardItem}>
               <div className={styles.scorecardValue} style={{ fontSize: '1.35rem' }}>
                 {fmt(avgPerGuest)}
               </div>
-              <div className={styles.scorecardLabel}>$/Cliente</div>
+              <div className={styles.scorecardLabel}>{t('dashboard.scorecard_per_customer')}</div>
             </div>
             <div className={styles.scorecardItem}>
               <div className={styles.scorecardValue} style={{ color: kpis.totalDiscounts > 0 ? 'var(--warning)' : 'var(--text-main)', fontSize: '1.35rem' }}>
                 {fmt(kpis.totalDiscounts)}
               </div>
-              <div className={styles.scorecardLabel}>Descuentos ({discountPct.toFixed(1)}%)</div>
+              <div className={styles.scorecardLabel}>{t('dashboard.scorecard_discounts')} ({discountPct.toFixed(1)}%)</div>
             </div>
             <div className={styles.scorecardItem}>
               <div className={styles.scorecardValue} style={{ color: kpis.totalVoids > 0 ? 'var(--danger)' : 'var(--text-main)', fontSize: '1.35rem' }}>
                 {fmt((kpis.totalVoids ?? 0) + (kpis.totalRefunds ?? 0))}
               </div>
-              <div className={styles.scorecardLabel}>Voids + Refunds</div>
+              <div className={styles.scorecardLabel}>{t('dashboard.scorecard_voids')}</div>
             </div>
           </div>
         </div>
@@ -511,12 +512,12 @@ export default function DashboardUI({
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart2 size={16} style={{ color: 'var(--cfs-gold)' }} />
-                Rendimiento por Sucursal
+                {t('dashboard.store_performance_title')}
               </div>
-              <div className={styles.cardSubtitle}>Ventas netas, clientes, ticket y eficiencia</div>
+              <div className={styles.cardSubtitle}>{t('dashboard.store_performance_subtitle')}</div>
             </div>
             <div className={styles.metricPill}>
-              {storesData.length} Sucursales
+              {storesData.length} {t('dashboard.stores_count')}
             </div>
           </div>
 
@@ -524,13 +525,13 @@ export default function DashboardUI({
             <table className={styles.storeTable}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left' }}>Sucursal</th>
-                  <th>Ventas Netas</th>
-                  <th>Clientes</th>
-                  <th>Órdenes</th>
-                  <th>$/Orden</th>
-                  <th>Descuentos</th>
-                  <th>Participación</th>
+                  <th style={{ textAlign: 'left' }}>{t('dashboard.table_store')}</th>
+                  <th>{t('dashboard.table_net_sales')}</th>
+                  <th>{t('dashboard.table_customers')}</th>
+                  <th>{t('dashboard.table_orders')}</th>
+                  <th>{t('dashboard.table_avg_order')}</th>
+                  <th>{t('dashboard.table_discounts')}</th>
+                  <th>{t('dashboard.table_share')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -586,9 +587,9 @@ export default function DashboardUI({
         <div className={`glass-card ${styles.col4}`} style={{ height: 'max-content' }}>
           <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
             <Percent size={16} style={{ color: 'var(--cfs-gold)' }} />
-            Eficiencia Operacional
+            {t('dashboard.op_efficiency_title')}
           </div>
-          <div className={styles.cardSubtitle} style={{ marginBottom: '1.4rem' }}>Indicadores de control</div>
+          <div className={styles.cardSubtitle} style={{ marginBottom: '1.4rem' }}>{t('dashboard.op_efficiency_subtitle')}</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
@@ -603,7 +604,7 @@ export default function DashboardUI({
             />
 
             <EfficiencyBar
-              label="Descuento %"
+              label={t('dashboard.discount_pct')}
               value={discountPct}
               max={20}
               target={10}
@@ -613,13 +614,13 @@ export default function DashboardUI({
             />
 
             <EfficiencyBar
-              label="Voids / Ventas %"
+              label={t('dashboard.voids_pct')}
               value={voidPct}
               max={5}
               target={2}
               color={voidPct > 2 ? 'var(--danger)' : 'var(--success)'}
               format={`${voidPct.toFixed(2)}%`}
-              caption={`${fmt(currentKpis.totalVoids ?? 0)} · Cancelaciones o anulaciones de caja`}
+              caption={`${fmt(currentKpis.totalVoids ?? 0)} ${t('dashboard.void_caption_suffix')}`}
             />
 
             {/* Sales Per Labor Hour */}
@@ -628,7 +629,7 @@ export default function DashboardUI({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Clock size={13} style={{ color: 'var(--cfs-gold)' }} />
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Ventas / Hora Labor
+                    {t('dashboard.sales_per_labor_hour')}
                   </span>
                 </div>
                 <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: 'var(--cfs-gold)' }}>
@@ -636,7 +637,7 @@ export default function DashboardUI({
                 </span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                {totalLaborHours.toFixed(1)} horas trabajadas totales
+                {totalLaborHours.toFixed(1)} {t('dashboard.total_labor_hours')}
               </div>
             </div>
 
@@ -644,7 +645,7 @@ export default function DashboardUI({
             {topStore && (
               <div style={{ padding: '1rem', background: 'rgba(221,167,86,0.06)', borderRadius: '14px', border: '1px solid rgba(221,167,86,0.15)' }}>
                 <div style={{ fontSize: '0.68rem', color: 'var(--cfs-gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px' }}>
-                  🏆 Mejor Sucursal
+                  {t('dashboard.top_store_label')}
                 </div>
                 <div style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '2px' }}>
                   {cleanStoreName(topStore.storeName)}
@@ -652,7 +653,7 @@ export default function DashboardUI({
                 <div style={{ fontSize: '0.8rem', color: 'var(--cfs-gold)', fontWeight: 600 }}>
                   {fmt(topStore.netSales, 0)}&nbsp;
                   <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.75rem' }}>
-                    · {topStore.guests.toLocaleString()} clientes
+                    · {topStore.guests.toLocaleString()} {t('dashboard.customers_label')}
                   </span>
                 </div>
               </div>
@@ -666,9 +667,9 @@ export default function DashboardUI({
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart2 size={16} style={{ color: 'var(--cfs-gold)' }} />
-                Comparativa de Ventas por Sucursal
+                {t('dashboard.store_comparison_title')}
               </div>
-              <div className={styles.cardSubtitle}>Ventas netas — barras horizontales ordenadas por monto</div>
+              <div className={styles.cardSubtitle}>{t('dashboard.store_comparison_subtitle')}</div>
             </div>
           </div>
           <div style={{ minWidth: 0, minHeight: 0, width: '100%', height: Math.max(240, storesData.length * 42), maxHeight: 600, overflowY: 'auto' }}>
@@ -688,7 +689,7 @@ export default function DashboardUI({
                   tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}
                 />
                 <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-main)', boxShadow: 'var(--shadow-card)', fontSize: '0.82rem' }}
-                  formatter={(val: any) => [`$${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Ventas Netas']}
+                  formatter={(val: any) => [`$${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, t('dashboard.tooltip_net_sales')]}
                 />
                 <Bar dataKey="netSales" radius={[0, 10, 10, 0]} barSize={18} fill="var(--cfs-gold)" activeBar={{ fill: '#E6C48F' }}>
                   {storesData.map((_, i) => (
@@ -709,12 +710,12 @@ export default function DashboardUI({
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} style={{ color: 'var(--success)' }} />
-                Radar de Operaciones
+                {t('dashboard.ops_radar_title')}
               </div>
-              <div className={styles.cardSubtitle}>Mapa en vivo de todas las sucursales CFSCoffee</div>
+              <div className={styles.cardSubtitle}>{t('dashboard.ops_radar_subtitle')}</div>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>
-              ● {storesData.length} Nodos Sincronizados
+              ● {storesData.length} {t('dashboard.synced_nodes')}
             </span>
           </div>
           <div style={{ flex: 1, minHeight: '380px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>

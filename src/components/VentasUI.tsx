@@ -45,6 +45,7 @@ interface VentasData {
 }
 
 import { cleanStoreName as _cleanRestaurantName } from '@/utils/formatters';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ const WoW = ({ pct }: { pct: number }) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function VentasUI({ data }: { data: VentasData }) {
+  const { t } = useTranslation();
   const [trendRange, setTrendRange] = useState<30 | 60 | 90>(90);
   const [trendMetric, setTrendMetric] = useState<'netSales' | 'guests' | 'orders' | 'discounts'>('netSales');
 
