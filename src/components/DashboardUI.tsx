@@ -40,6 +40,7 @@ interface StoreData {
   discounts: number;
   voids: number;
   refunds: number;
+  laborCost?: number;
 }
 
 interface DashboardUIProps {
@@ -551,6 +552,7 @@ export default function DashboardUI({
                   <th>{t('dashboard.table_orders')}</th>
                   <th>{t('dashboard.table_avg_order')}</th>
                   <th>{t('dashboard.table_discounts')}</th>
+                  <th>{t('dashboard.table_labor') ?? 'Costo Laboral'}</th>
                   <th>{t('dashboard.table_share')}</th>
                 </tr>
               </thead>
@@ -586,6 +588,13 @@ export default function DashboardUI({
                       <td>{fmt(avgTicketStore)}</td>
                       <td style={{ color: store.discounts > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
                         {store.discounts > 0 ? `-${fmt(store.discounts, 0)}` : '—'}
+                      </td>
+                      <td>
+                        {store.laborCost && store.netSales > 0 ? (
+                          <span style={{ color: (store.laborCost / store.netSales) > 0.3 ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>
+                            {((store.laborCost / store.netSales) * 100).toFixed(1)}%
+                          </span>
+                        ) : '—'}
                       </td>
                       <td>
                         <div className={styles.barCell}>

@@ -36,6 +36,7 @@ export const getDashboardMetrics = unstable_cache(
     // 3. Desglose por sucursal — ventas, clientes, órdenes, descuentos, voids.
     const topSucursalesRaw = await db
       .select({
+        storeId:        vwDailySalesMetrics.storeId,
         storeName:      vwDailySalesMetrics.storeName,
         netSales:       sum(vwDailySalesMetrics.totalNetSales).mapWith(Number),
         grossSales:     sum(vwDailySalesMetrics.totalGrossSales).mapWith(Number),
@@ -47,17 +48,18 @@ export const getDashboardMetrics = unstable_cache(
       })
       .from(vwDailySalesMetrics)
       .where(sql`${vwDailySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
-      .groupBy(vwDailySalesMetrics.storeName)
+      .groupBy(vwDailySalesMetrics.storeId, vwDailySalesMetrics.storeName)
       .orderBy(desc(sum(vwDailySalesMetrics.totalNetSales)));
 
     // Garantizamos que storeName sea siempre string (nunca null) para satisfacer StoreData[]
     const topSucursales = topSucursalesRaw.map(s => ({
       ...s,
       storeName: s.storeName ?? 'Desconocida',
+      laborCost: 0, // Placeholder, updated below
     }));
 
     // 4. Curva horaria — ventas + clientes + labor (SUM DISTINCT para evitar duplicación por segmento)
-    const [hourlyData, avg30Raw] = await Promise.all([
+    const [hourlyData, avg30Raw, laborPerStoreRaw] = await Promise.all([
       db
         .select({
           hour:      hourlySalesMetrics.businessHour,
@@ -90,6 +92,17 @@ export const getDashboardMetrics = unstable_cache(
           GROUP BY ${vwDailySalesMetrics.businessDate}::date
         ) sub
       `),
+      // Labor Cost per Store (safely collapsing revenue center duplicates by max per hour per store)
+      db.execute(sql`
+        SELECT "storeId", SUM("laborCostHour") as "totalLaborStore"
+        FROM (
+          SELECT "StoreId" as "storeId", "BusinessHour", MAX("HourlyJobTotalPay") as "laborCostHour"
+          FROM "HourlySalesMetrics"
+          WHERE "BusinessDate"::date = ${lastBusinessDateStr}::date
+          GROUP BY "StoreId", "BusinessHour"
+        ) sub
+        GROUP BY "storeId"
+      `),
     ]);
 
     // Parse 30-day averages
@@ -103,6 +116,14 @@ export const getDashboardMetrics = unstable_cache(
       avgGuests:   Number(avg30Row.avgGuests ?? 0),
       avgOrders:   Number(avg30Row.avgOrders ?? 0),
     };
+
+    const laborPerStore = toRows(laborPerStoreRaw);
+    topSucursales.forEach(s => {
+      const dbStore = laborPerStore.find(l => l.storeId === s.storeId);
+      if (dbStore) {
+        s.laborCost = Number(dbStore.totalLaborStore ?? 0);
+      }
+    });
 
     const totalLaborCost = hourlyData.reduce((acc, d) => acc + (d.laborCost ?? 0), 0);
     const totalLaborHours = hourlyData.reduce((acc, d) => acc + (d.laborHrs ?? 0), 0);
