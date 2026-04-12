@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes that are disabled — authenticated users who try to access them get /coming-soon
-const COMING_SOON_ROUTES = ['/sucursales', '/inventario', '/clientes', '/productos'];
+const COMING_SOON_ROUTES = ['/ventas', '/sucursales', '/inventario', '/clientes', '/productos'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
