@@ -21,20 +21,12 @@ async function requireAdmin(): Promise<{ authorized: boolean; error?: string }> 
       return { authorized: false, error: 'No autenticado' };
     }
 
-    const meta = user.user_metadata ?? {};
-    const role = meta.role ?? meta.user_role;
-    
-    // Si tiene role explicito de MANAGER, prohibir. 
-    // Si no tiene role o es ADMIN/Gerente, permitir.
-    if (role === 'MANAGER') {
-      return { authorized: false, error: 'Acceso restringido a administradores' };
-    }
-
     return { authorized: true };
   } catch {
     return { authorized: false, error: 'Error de autorización' };
   }
 }
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const auth = await requireAdmin();
