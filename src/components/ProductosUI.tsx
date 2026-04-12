@@ -98,7 +98,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                     <Pie data={data.byDiningOption} cx="50%" cy="50%" innerRadius={40} outerRadius={68} paddingAngle={4} cornerRadius={5} dataKey="netSales" stroke="none">
                       {data.byDiningOption.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${v.toLocaleString()}`, '']}/>
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${v.toLocaleString()}`, '']}/>
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -147,7 +147,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)"/>
                   <XAxis type="number" tickFormatter={v => `$${v}`} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)' }}/>
                   <YAxis dataKey="name" type="category" width={90} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)', fontWeight: 600 }}/>
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any, n: any) => [n === 'ventas' ? `$${v.toLocaleString()}` : `$${v.toFixed(2)}`, n === 'ventas' ? 'Ventas' : 'AOV']}/>
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any, n: any) => [n === 'ventas' ? `$${v.toLocaleString()}` : `$${v.toFixed(2)}`, n === 'ventas' ? 'Ventas' : 'AOV']}/>
                   <Bar dataKey="ventas" radius={[0, 8, 8, 0]} barSize={14}>
                     {data.byOrderSource.slice(0, 7).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Bar>
@@ -211,7 +211,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                   <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval={2}/>
                   <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${v.toFixed(2)}`, 'AOV']}/>
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${v.toFixed(2)}`, 'AOV']}/>
                   <Bar dataKey="aov" radius={[6, 6, 0, 0]} barSize={16}>
                     {data.aovHourly.map((h, i) => {
                       const maxAov = Math.max(...data.aovHourly.map(x => x.aov));

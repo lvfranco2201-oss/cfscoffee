@@ -348,7 +348,7 @@ export default function DashboardUI({
                 <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis yAxisId="left"  stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                 <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip
+                <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '12px', color: 'var(--text-main)', boxShadow: 'var(--shadow-card)', fontSize: '0.82rem' }}
                   formatter={(val: any, name: any) => {
                     if (name === 'ventas') return [`$${val.toLocaleString()}`, 'Ventas Netas'];
@@ -402,7 +402,7 @@ export default function DashboardUI({
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
+                  <Tooltip cursor={false}
                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px', fontSize: '0.8rem' }}
                     formatter={(v: any) => [`$${v.toLocaleString()}`, '']}
                   />
@@ -633,9 +633,7 @@ export default function DashboardUI({
                   stroke="var(--text-muted)"
                   tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}
                 />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                  contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-main)', boxShadow: 'var(--shadow-card)', fontSize: '0.82rem' }}
+                <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-main)', boxShadow: 'var(--shadow-card)', fontSize: '0.82rem' }}
                   formatter={(val: any) => [`$${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Ventas Netas']}
                 />
                 <Bar dataKey="netSales" radius={[0, 10, 10, 0]} barSize={18} fill="var(--cfs-gold)" activeBar={{ fill: '#E6C48F' }}>

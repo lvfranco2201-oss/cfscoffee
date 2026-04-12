@@ -153,36 +153,6 @@ export default function Sidebar() {
           {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
         </button>
 
-        {/* Refresh data cache */}
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Forzar actualización de datos (busts el caché ISR)"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            width: '100%',
-            padding: '8px 12px',
-            borderRadius: '10px',
-            background: refreshed
-              ? 'rgba(46,202,127,0.1)'
-              : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${refreshed ? 'rgba(46,202,127,0.3)' : 'rgba(255,255,255,0.07)'}`,
-            color: refreshed ? 'var(--success)' : 'var(--cfs-slate)',
-            fontSize: '0.82rem',
-            fontWeight: 500,
-            marginBottom: '0.5rem',
-            cursor: refreshing ? 'not-allowed' : 'pointer',
-            transition: 'all 0.3s',
-            opacity: refreshing ? 0.7 : 1,
-          }}
-        >
-          {refreshed
-            ? <><Check size={15} /> Datos actualizados</>
-            : <><RefreshCw size={15} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} /> Actualizar datos</>
-          }
-        </button>
 
         <Link href="/settings" className={styles.navItem}>
           <Settings size={20} />

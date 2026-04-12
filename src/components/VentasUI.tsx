@@ -255,7 +255,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
               <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval={Math.floor(trendSliced.length / 10)} />
               <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false}
                 tickFormatter={v => trendMetric === 'netSales' || trendMetric === 'discounts' ? `$${v}` : v.toLocaleString()} />
-              <Tooltip
+              <Tooltip cursor={false}
                 contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '10px', fontSize: '0.8rem', boxShadow: 'var(--shadow-card)' }}
                 formatter={(val: any, name: any) => {
                   const labels: Record<string, string> = { netSales: 'Ventas Netas', guests: 'Clientes', orders: 'Órdenes', discounts: 'Descuentos', ma7: 'Media Móvil 7d' };
@@ -314,7 +314,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false}/>
                 <YAxis yAxisId="l" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
                 <YAxis yAxisId="r" orientation="right" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false}/>
-                <Tooltip
+                <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any, n: any) => {
                     if (n === 'ventas') return [`$${v.toLocaleString()}`, 'Ventas'];
@@ -353,7 +353,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                 <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false}/>
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
-                <Tooltip
+                <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any) => [`$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, 'Venta Promedio']}
                 />
@@ -385,7 +385,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                     <Pie data={data.byDiningOption} cx="50%" cy="50%" innerRadius={45} outerRadius={68} paddingAngle={4} cornerRadius={6} dataKey="netSales" stroke="none">
                       {data.byDiningOption.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
                       formatter={(v: any) => [`$${v.toLocaleString()}`, '']} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -422,7 +422,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)"/>
                   <XAxis type="number" tickFormatter={v=>`$${v}`} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)' }}/>
                   <YAxis dataKey="name" type="category" width={80} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)', fontWeight: 600 }}/>
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
                     formatter={(v: any) => [`$${v.toLocaleString()}`, 'Ventas']}/>
                   <Bar dataKey="ventas" radius={[0, 8, 8, 0]} barSize={14}>
                     {data.byOrderSource.slice(0, 6).map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
@@ -512,7 +512,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                     <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false}/>
                     <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
                       formatter={(v: any, n: any) => [`$${v.toLocaleString()}`, n === 'value' ? 'Monto Total' : 'Propinas']}/>
                     <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={22}>
                       {data.paymentBreakdown.slice(0, 8).map((p, i) => <Cell key={i} fill={p.color} />)}
@@ -608,7 +608,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                       <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd"/>
                       <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`${v.toFixed(0)}%`}/>
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#2eca7f', borderRadius: '10px', fontSize: '0.78rem' }}
+                      <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#2eca7f', borderRadius: '10px', fontSize: '0.78rem' }}
                         formatter={(v: any, n: any) => [n === 'tipRate' ? `${v.toFixed(2)}%` : `$${v.toLocaleString()}`, n === 'tipRate' ? 'Tip Rate' : 'Propinas']}/>
                       <Area type="monotone" dataKey="tipRate" stroke="#2eca7f" strokeWidth={2.5} fill="url(#tipGrad)" dot={false} isAnimationActive animationDuration={1200}/>
                     </ComposedChart>

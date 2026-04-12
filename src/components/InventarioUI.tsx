@@ -149,7 +149,7 @@ export default function InventarioUI({ data }: { data: LaborData }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                 <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd"/>
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`${v}%`} domain={[0, Math.max(maxLaborPct30 * 1.15, TARGET_LABOR_PCT + 5)]}/>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: COLOR_GOLD, borderRadius: '10px', fontSize: '0.78rem' }}
+                <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: COLOR_GOLD, borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any, n: any) => [n === 'laborPct' ? `${v.toFixed(1)}%` : fmtK(v), n === 'laborPct' ? 'Labor%' : 'Costo Labor']}/>
                 <ReferenceLine y={TARGET_LABOR_PCT} stroke="rgba(239,68,68,0.45)" strokeDasharray="5 4"
                   label={{ value: `${TARGET_LABOR_PCT}% obj.`, fill: 'rgba(239,68,68,0.6)', fontSize: 10, position: 'insideTopRight' }}/>
@@ -177,7 +177,7 @@ export default function InventarioUI({ data }: { data: LaborData }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                 <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd"/>
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`${v.toFixed(1)}%`}/>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
+                <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any, n: any) => [`${v.toFixed(2)}%`, n === 'voidRate' ? 'Void%' : n === 'discountRate' ? 'Descuento%' : 'Refund%']}/>
                 <Line type="monotone" dataKey="voidRate" stroke={COLOR_DANGER} strokeWidth={2} dot={false} name="voidRate"/>
                 <Line type="monotone" dataKey="discountRate" stroke={COLOR_WARN} strokeWidth={2} dot={false} name="discountRate"/>
@@ -205,7 +205,7 @@ export default function InventarioUI({ data }: { data: LaborData }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                     <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval={2}/>
                     <YAxis stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v=>`${v}%`}/>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }}
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }}
                       formatter={(v: any, n: any) => [n === 'laborPct' ? `${v.toFixed(1)}%` : v.toFixed(0), n === 'laborPct' ? 'Labor%' : 'Voids']}/>
                     <ReferenceLine y={TARGET_LABOR_PCT} stroke="rgba(239,68,68,0.4)" strokeDasharray="3 3"/>
                     <Bar dataKey="laborPct" radius={[4, 4, 0, 0]} barSize={14} name="laborPct">
@@ -231,7 +231,7 @@ export default function InventarioUI({ data }: { data: LaborData }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                     <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval={2}/>
                     <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }} formatter={(v: any) => [`$${v.toFixed(0)}`, '$V/H Laboral']}/>
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }} formatter={(v: any) => [`$${v.toFixed(0)}`, '$V/H Laboral']}/>
                     <Bar dataKey="salesPerLH" radius={[4, 4, 0, 0]} barSize={14}>
                       {(() => {
                         const maxSPLH = splhHourly.length > 0 ? Math.max(...splhHourly.map(h => h.salesPerLH)) : 0;
@@ -260,7 +260,7 @@ export default function InventarioUI({ data }: { data: LaborData }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                     <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false}/>
                     <YAxis stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v=>`${v}%`}/>
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }} formatter={(v: any) => [`${v.toFixed(1)}%`, 'Labor% Prom.']}/>
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.73rem' }} formatter={(v: any) => [`${v.toFixed(1)}%`, 'Labor% Prom.']}/>
                     <ReferenceLine y={TARGET_LABOR_PCT} stroke="rgba(239,68,68,0.4)" strokeDasharray="3 3"/>
                     <Bar dataKey="avgLaborPct" radius={[6, 6, 0, 0]} barSize={24}>
                       {byDow.map((d, i) => <Cell key={i} fill={

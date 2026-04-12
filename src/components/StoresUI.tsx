@@ -528,7 +528,7 @@ export default function StoresUI({
                           </defs>
                           <XAxis dataKey="date" tick={false} axisLine={false} tickLine={false} />
                           <YAxis tick={false} axisLine={false} tickLine={false} />
-                          <Tooltip
+                          <Tooltip cursor={false}
                             contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem', padding: '4px 10px' }}
                             formatter={(v: any) => [`$${v.toLocaleString()}`, 'Ventas']}
                           />
@@ -576,7 +576,7 @@ export default function StoresUI({
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd" />
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                <Tooltip
+                <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '10px', fontSize: '0.8rem' }}
                   formatter={(v: any) => [`$${v.toLocaleString()}`, 'Ventas Netas']}
                 />
@@ -618,9 +618,7 @@ export default function StoresUI({
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
                 <XAxis type="number" tickFormatter={v => `$${v}`} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} />
                 <YAxis dataKey="name" type="category" width={90} stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)', fontWeight: 600 }} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                  contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.8rem' }}
+                <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.8rem' }}
                   formatter={(v: any) => [`$${v.toLocaleString()}`, 'Ventas']}
                 />
                 <Bar dataKey="ventas" radius={[0, 8, 8, 0]} barSize={14}>

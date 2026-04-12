@@ -138,7 +138,7 @@ export default function ClientesUI({ data }: { data: ClientesData }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                 <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval={Math.floor(trendSlice.length / 10)}/>
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => metric === 'sales' ? `$${v}` : v.toLocaleString()}/>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '10px', fontSize: '0.78rem' }}
+                <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any) => [metric === 'sales' ? `$${v.toLocaleString()}` : v.toLocaleString(), metric === 'guests' ? 'Clientes' : metric === 'orders' ? 'Órdenes' : 'Ventas']}/>
                 <Area type="monotone" dataKey={metric} stroke="#DDA756" strokeWidth={2.5} fill="url(#cliGrad)" dot={false} isAnimationActive animationDuration={1200}/>
                 {metric === 'guests' && <Line type="monotone" dataKey="ma7" stroke="rgba(255,255,255,0.35)" strokeWidth={1.5} dot={false} strokeDasharray="5 3"/>}
@@ -173,7 +173,7 @@ export default function ClientesUI({ data }: { data: ClientesData }) {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                   <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval={2}/>
                   <YAxis stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false}/>
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [v, 'Clientes']}/>
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [v, 'Clientes']}/>
                   <Bar dataKey="clientes" radius={[4, 4, 0, 0]} barSize={14}>
                     {data.hourly.map((h, i) => <Cell key={i} fill={h.time === bestHour?.time ? '#DDA756' : 'rgba(221,167,86,0.4)'} />)}
                   </Bar>
@@ -192,7 +192,7 @@ export default function ClientesUI({ data }: { data: ClientesData }) {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false}/>
                   <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false}/>
                   <YAxis stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false}/>
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [Math.round(v).toLocaleString(), 'Prom. Clientes']}/>
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [Math.round(v).toLocaleString(), 'Prom. Clientes']}/>
                   <Bar dataKey="avgGuests" radius={[6, 6, 0, 0]} barSize={24}>
                     {data.byDow.map((d, i) => <Cell key={i} fill={d.day === bestDow?.day ? '#DDA756' : 'rgba(221,167,86,0.4)'} />)}
                   </Bar>
