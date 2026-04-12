@@ -63,7 +63,9 @@ export default function Sidebar() {
       const firstName = String(rawName).trim().split(' ')[0];
 
       // Role from metadata if set, otherwise default
-      const role = meta.role ?? meta.user_role ?? 'Gerente General';
+      let role = meta.role ?? meta.user_role ?? 'Gerente General';
+      if (role === 'ADMIN') role = 'Administrador';
+      if (role === 'MANAGER') role = 'Store Manager';
 
       setUserName(firstName);
       setUserRole(String(role));
@@ -82,7 +84,7 @@ export default function Sidebar() {
     { name: 'Dashboard',    path: '/',          icon: <BarChart3 size={20} /> },
     { name: 'Ventas',       path: '/ventas',     icon: <TrendingUp size={20} /> },
     { name: 'Sucursales',   path: '/sucursales', icon: <Store size={20} /> },
-    { name: 'Labor',        path: '/inventario', icon: <Package size={20} /> },
+    { name: 'Inventario',   path: '/inventario', icon: <Package size={20} /> },
     { name: 'Clientes',     path: '/clientes',   icon: <Users size={20} /> },
     { name: 'Canales',      path: '/productos',  icon: <Coffee size={20} /> },
   ];
