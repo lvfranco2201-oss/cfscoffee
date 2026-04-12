@@ -87,6 +87,16 @@ export default function ErrorDisplay({ error, reset, section, icon }: ErrorDispl
             ? 'No se pudo conectar con la base de datos operativa. Verifica tu conexión o intenta de nuevo en unos segundos.'
             : 'Ocurrió un error inesperado al cargar los datos de esta sección. El equipo técnico ha sido notificado.'}
         </p>
+        <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid var(--border-color)', textAlign: 'left', overflow: 'auto', maxHeight: '200px' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--danger)', fontFamily: 'monospace', margin: 0 }}>
+            {error.message}
+          </p>
+          {error.stack && (
+            <pre style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>
+              {error.stack}
+            </pre>
+          )}
+        </div>
         {error.digest && (
           <p style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: 'var(--text-muted)', opacity: 0.5 }}>
             Código: {error.digest}

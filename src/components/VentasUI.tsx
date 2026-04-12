@@ -81,8 +81,12 @@ export default function VentasUI({ data }: { data: VentasData }) {
 
   // Date label — uses active locale for correct language formatting
   const dateLocale = useDateLocale();
+  const safeParseDate = (s: string) => {
+    if (!s) return new Date();
+    return s.includes('T') ? new Date(s) : new Date(s + 'T12:00:00');
+  };
   const fmtShort = (s: string) =>
-    new Date(s + 'T12:00:00').toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' });
+    safeParseDate(s).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' });
   const dateFmt = (() => {
     const from = data.fromDate;
     const to   = data.toDate;
@@ -90,7 +94,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
       return `${fmtShort(from)} → ${fmtShort(to)}`;
     }
     const anchor = (from && from !== data.lastDate) ? from : data.lastDate;
-    return new Date(anchor + 'T12:00:00').toLocaleDateString(dateLocale, {
+    return safeParseDate(anchor).toLocaleDateString(dateLocale, {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
   })();
@@ -168,7 +172,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
           { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart,  col: 'var(--info)',     bg: 'rgba(79,172,254,0.12)',      label: t('ventas.kpi_orders_closed'),   val: data.kpisHoy.orders.toLocaleString(),                   sub: `${t('ventas.kpi_ticket_prefix')} ${fmt(avgTicket)}` },
           { href: null,        icon: <Percent size={18}/>,        WM: Percent,        col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: t('ventas.kpi_discounts'), val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% ${t('ventas.kpi_pct_gross')}` },
           { href: null,        icon: <AlertTriangle size={18}/>,  WM: AlertTriangle,  col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: t('ventas.kpi_voids_refunds'), val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% ${t('ventas.kpi_voids_suffix')}` },
-          { href: null,        icon: <Award size={18}/>,          WM: Award,          col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',       label: t('ventas.kpi_best_day_90'),     val: fmtK(best90),                                           sub: data.topDias[0]?.date ? new Date(data.topDias[0].date + 'T12:00:00').toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' }) : '—' },
+          { href: null,        icon: <Award size={18}/>,          WM: Award,          col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',       label: t('ventas.kpi_best_day_90'),     val: fmtK(best90),                                           sub: data.topDias[0]?.date ? safeParseDate(data.topDias[0].date).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' }) : '—' },
         ].map((c, i) => {
           const content = (
             <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden', cursor: c.href ? 'pointer' : 'default', transition: 'all 0.2s', height: '100%' }}>
@@ -505,7 +509,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
             {data.topDias.map((d, i) => {
               const pct = data.topDias[0]?.netSales > 0 ? (d.netSales / data.topDias[0].netSales * 100) : 0;
               const rankCol = i === 0 ? '#DDA756' : i === 1 ? '#94A3B8' : i === 2 ? '#b87333' : 'var(--text-muted)';
-              const dateStr = d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+              const dateStr = d.date ? safeParseDate(d.date).toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—';
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderBottom: i < 9 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.8rem', color: rankCol, width: '22px', textAlign: 'center', flexShrink: 0 }}>#{i + 1}</span>
