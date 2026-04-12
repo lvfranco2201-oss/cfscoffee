@@ -1,0 +1,295 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* =========================================
+     DARK THEME DEFINITIONS (Premium Dark Navy)
+     ========================================= */
+  --cfs-navy-dark: #070B14;   /* Vantablack/Navy background */
+  --bg-card: #101623;         /* Slightly elevated surface */
+  --bg-card-hover: #161f30;
+  --border-color: rgba(255, 255, 255, 0.06); /* Nearly invisible crisp border */
+  
+  --text-main: #FFFFFF;
+  --text-muted: #94A3B8;
+  
+  --cfs-gold: #DDA756;       /* Bright luminous gold */
+  --cfs-gold-dim: rgba(221, 167, 86, 0.15);
+  
+  --cfs-cream: #fdfbf7;      /* Used for specific text highlights */
+  --cfs-slate: #8fa0b5;      /* Used for sidebar text and icons */
+  
+  --shadow-card: 0px 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Status Colors */
+  --success: #2eca7f;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+
+  /* Layout Variables */
+  --nav-width: 260px;
+  --header-height: 70px;
+}
+
+/* =========================================
+   LIGHT THEME OVERRIDES (Clean SaaS Style)
+   ========================================= */
+[data-theme="light"] {
+  --cfs-navy-dark: #F3F5F8;   /* Clean airy cool grey/white background */
+  --bg-card: #FFFFFF;         /* Pure white elevation */
+  --bg-card-hover: #FAFAFA;
+  --border-color: #E2E8F0;    /* Crisp grey border */
+  
+  --text-main: #0F172A;       /* Slate 900 for dark text */
+  --text-muted: #64748B;      /* Slate 500 for muted */
+  
+  --cfs-gold: #B48936;        /* Deepened Gold for light mode contrast */
+  --cfs-gold-dim: rgba(180, 137, 54, 0.1);
+  
+  --cfs-cream: #1e293b;       /* Darken the cream for light mode texts */
+  --cfs-slate: #475569;
+  
+  --shadow-card: 0px 4px 16px rgba(15, 23, 42, 0.04), 0px 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  color: var(--text-main);
+  background: var(--cfs-navy-dark);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle background glowing orb effect using CFS Gold */
+body::before {
+  content: '';
+  position: fixed;
+  top: -20vh;
+  left: -10vw;
+  width: 50vw;
+  height: 50vh;
+  background: radial-gradient(circle, var(--cfs-gold-dim) 0%, rgba(9, 10, 15, 0) 70%);
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.95); }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+/* Glassmorphism Card Utilities */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  border-radius: 20px;
+  padding: 1.8rem;
+  transition: transform 0.2s, background-color 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--cfs-gold-dim) inset;
+  background: var(--bg-card-hover);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--cfs-cream) 0%, var(--cfs-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge.success {
+  background: rgba(46, 202, 127, 0.1);
+  color: var(--success);
+}
+.badge.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+.badge.info {
+  background: rgba(79, 172, 254, 0.1);
+  color: var(--info);
+}
+
+/* Layout Core */
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--nav-width);
+  background: #0B1120; /* Solid sleek Vantablack */
+  border-right: 1px solid rgba(255, 255, 255, 0.05); /* Hardware line */
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  backdrop-filter: blur(20px);
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--nav-width);
+  padding: 2.5rem 3rem;
+  min-height: 100vh;
+}
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-in {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
+/* Custom Sleek Scrollbar (Mac Style) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cfs-slate);
+}
+
+/* =========================================
+   MOBILE FIRST PWA RESPONSIVENESS
+   ========================================= */
+
+/* Utility responsive grid classes — use these instead of inline grid styles
+   so mobile overrides are precise and don't break charts/pills/legends. */
+.grid-cols-1 { display: grid; grid-template-columns: 1fr; gap: 1.1rem; }
+.grid-cols-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; }
+.grid-cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+.grid-cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; }
+.grid-cols-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1rem; }
+.grid-cols-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.1rem; }
+
+@media (max-width: 1024px) {
+  .layout-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100vw;
+    height: auto !important;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    padding: 0;
+    z-index: 100;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(7, 11, 20, 0.95);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    padding-bottom: 90px;
+  }
+
+  /* Collapse all responsive grid utilities to 1 column */
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .glass-card {
+    padding: 1rem;
+  }
+}
+
