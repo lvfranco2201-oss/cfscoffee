@@ -104,18 +104,21 @@ export default function InventarioUI({ data }: { data: LaborData }) {
       {/* ── KPI CARDS ──────────────────────────────────────────────────────── */}
       <div className="grid-cols-6" style={{ marginBottom: '1.75rem' }}>
         {[
-          { icon: <DollarSign size={17}/>, col: COLOR_GOLD, bg: 'var(--cfs-gold-dim)', label: 'Costo Laboral', val: fmt(kpi.laborCost), sub: `${kpi.laborHours.toFixed(1)}h trabajadas hoy` },
-          { icon: laborOk ? <CheckCircle size={17}/> : <AlertTriangle size={17}/>, col: laborOk ? COLOR_SAFE : COLOR_WARN, bg: laborOk ? 'rgba(46,202,127,0.12)' : 'rgba(245,158,11,0.12)', label: 'Labor %', val: kpi.laborPct > 0 ? `${kpi.laborPct.toFixed(1)}%` : '—', sub: `Obj: <${TARGET_LABOR_PCT}% · 30d: ${avgLaborPct30.toFixed(1)}%` },
-          { icon: <Zap size={17}/>, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: '$Venta/Hora Lab.', val: fmt(kpi.salesPerLH), sub: 'Indicador de eficiencia' },
-          { icon: <Clock size={17}/>, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Costo/Hora Lab.', val: fmt(kpi.laborPerHour), sub: 'Costo promedio hora trabajada' },
-          { icon: <Activity size={17}/>, col: kpi.openOrderRate > 15 ? COLOR_DANGER : COLOR_SAFE, bg: kpi.openOrderRate > 15 ? 'rgba(239,68,68,0.10)' : 'rgba(46,202,127,0.10)', label: 'Órdenes Abiertas', val: kpi.openOrders.toLocaleString(), sub: `${kpi.openOrderRate.toFixed(1)}% del total (congestión)` },
-          { icon: wowUp ? <TrendingUp size={17}/> : <TrendingDown size={17}/>, col: wowUp ? COLOR_DANGER : COLOR_SAFE, bg: wowUp ? 'rgba(239,68,68,0.10)' : 'rgba(46,202,127,0.10)', label: 'Variación WoW', val: `${wowUp ? '+' : ''}${wowLaborCost.toFixed(1)}%`, sub: `${fmtK(currWeek.laborCost)} vs ${fmtK(prevWeek.laborCost)}` },
+          { icon: <DollarSign size={17}/>, WM: DollarSign, col: COLOR_GOLD, bg: 'var(--cfs-gold-dim)', label: 'Costo Laboral', val: fmt(kpi.laborCost), sub: `${kpi.laborHours.toFixed(1)}h trabajadas hoy` },
+          { icon: laborOk ? <CheckCircle size={17}/> : <AlertTriangle size={17}/>, WM: laborOk ? CheckCircle : AlertTriangle, col: laborOk ? COLOR_SAFE : COLOR_WARN, bg: laborOk ? 'rgba(46,202,127,0.12)' : 'rgba(245,158,11,0.12)', label: 'Labor %', val: kpi.laborPct > 0 ? `${kpi.laborPct.toFixed(1)}%` : '—', sub: `Obj: <${TARGET_LABOR_PCT}% · 30d: ${avgLaborPct30.toFixed(1)}%` },
+          { icon: <Zap size={17}/>, WM: Zap, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: '$Venta/Hora Lab.', val: fmt(kpi.salesPerLH), sub: 'Indicador de eficiencia' },
+          { icon: <Clock size={17}/>, WM: Clock, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Costo/Hora Lab.', val: fmt(kpi.laborPerHour), sub: 'Costo promedio hora trabajada' },
+          { icon: <Activity size={17}/>, WM: Activity, col: kpi.openOrderRate > 15 ? COLOR_DANGER : COLOR_SAFE, bg: kpi.openOrderRate > 15 ? 'rgba(239,68,68,0.10)' : 'rgba(46,202,127,0.10)', label: 'Órdenes Abiertas', val: kpi.openOrders.toLocaleString(), sub: `${kpi.openOrderRate.toFixed(1)}% del total (congestión)` },
+          { icon: wowUp ? <TrendingUp size={17}/> : <TrendingDown size={17}/>, WM: wowUp ? TrendingUp : TrendingDown, col: wowUp ? COLOR_DANGER : COLOR_SAFE, bg: wowUp ? 'rgba(239,68,68,0.10)' : 'rgba(46,202,127,0.10)', label: 'Variación WoW', val: `${wowUp ? '+' : ''}${wowLaborCost.toFixed(1)}%`, sub: `${fmtK(currWeek.laborCost)} vs ${fmtK(prevWeek.laborCost)}` },
         ].map((c, i) => (
-          <div key={i} className="glass-card" style={{ padding: '1.2rem', overflow: 'hidden' }}>
-            <div style={{ minWidth: 0, minHeight: 0, width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, marginBottom: '0.7rem' }}>{c.icon}</div>
-            <div style={{ fontFamily: 'Outfit', fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '2px' }}>{c.val}</div>
-            <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
-            <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+          <div key={i} className="glass-card" style={{ padding: '1.2rem', position: 'relative', overflow: 'hidden' }}>
+            <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ minWidth: 0, minHeight: 0, width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, marginBottom: '0.7rem' }}>{c.icon}</div>
+              <div style={{ fontFamily: 'Outfit', fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '2px' }}>{c.val}</div>
+              <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
+              <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+            </div>
           </div>
         ))}
       </div>

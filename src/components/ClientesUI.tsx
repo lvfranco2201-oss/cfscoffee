@@ -86,17 +86,20 @@ export default function ClientesUI({ data }: { data: ClientesData }) {
       {/* KPI CARDS */}
       <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
         {[
-          { icon: <Users size={18}/>, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Clientes Hoy', val: data.kpi.guests.toLocaleString(), sub: `Prom. 30d: ${Math.round(data.avgDailyGuests30).toLocaleString()}/día` },
-          { icon: <ShoppingCart size={18}/>, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'Órdenes Hoy', val: data.kpi.orders.toLocaleString(), sub: `${data.kpi.avgGuestPerOrder.toFixed(2)} clientes/orden` },
-          { icon: <DollarSign size={18}/>, col: 'var(--success)', bg: 'rgba(46,202,127,0.12)', label: 'Gasto/Cliente', val: fmt(data.kpi.avgSpendPerGuest), sub: `Ventas totales: ${fmt(data.kpi.netSales)}` },
-          { icon: <Clock size={18}/>, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Hora Pico', val: bestHour?.time ?? '—', sub: `${bestHour?.clientes ?? 0} clientes en esa hora` },
-          { icon: <Calendar size={18}/>, col: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', label: 'Mejor Día Sem.', val: bestDow?.day ?? '—', sub: `Prom: ${bestDow ? Math.round(bestDow.avgGuests).toLocaleString() : '—'} clientes` },
+          { icon: <Users size={18}/>, WM: Users, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Clientes Hoy', val: data.kpi.guests.toLocaleString(), sub: `Prom. 30d: ${Math.round(data.avgDailyGuests30).toLocaleString()}/día` },
+          { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'Órdenes Hoy', val: data.kpi.orders.toLocaleString(), sub: `${data.kpi.avgGuestPerOrder.toFixed(2)} clientes/orden` },
+          { icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--success)', bg: 'rgba(46,202,127,0.12)', label: 'Gasto/Cliente', val: fmt(data.kpi.avgSpendPerGuest), sub: `Ventas totales: ${fmt(data.kpi.netSales)}` },
+          { icon: <Clock size={18}/>, WM: Clock, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Hora Pico', val: bestHour?.time ?? '—', sub: `${bestHour?.clientes ?? 0} clientes en esa hora` },
+          { icon: <Calendar size={18}/>, WM: Calendar, col: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', label: 'Mejor Día Sem.', val: bestDow?.day ?? '—', sub: `Prom: ${bestDow ? Math.round(bestDow.avgGuests).toLocaleString() : '—'} clientes` },
         ].map((c, i) => (
-          <div key={i} className="glass-card" style={{ padding: '1.3rem', overflow: 'hidden' }}>
-            <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', marginBottom: '0.8rem' }}>{c.icon}</div>
-            <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px' }}>{c.val}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+          <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden' }}>
+            <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', marginBottom: '0.8rem' }}>{c.icon}</div>
+              <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px' }}>{c.val}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+            </div>
           </div>
         ))}
       </div>

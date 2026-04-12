@@ -59,18 +59,22 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
 
       {/* KPI CARDS */}
       <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
+      <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
         {[
-          { icon: <DollarSign size={18}/>, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', val: fmt(data.kpi.netSales), sub: `Bruto: ${fmt(data.kpi.grossSales)}` },
-          { icon: <ShoppingCart size={18}/>, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'AOV Promedio', val: fmt(data.kpi.avgOrderValue), sub: `${data.kpi.orders.toLocaleString()} órdenes totales` },
-          { icon: <Percent size={18}/>, col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos Hoy', val: fmt(data.kpi.discounts), sub: `${discPct.toFixed(1)}% del bruto · ${discOrderPct.toFixed(0)}% de órdenes` },
-          { icon: <AlertTriangle size={18}/>, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids Hoy', val: fmt(data.kpi.voids), sub: `${voidPct.toFixed(2)}% del bruto` },
-          { icon: <TrendingDown size={18}/>, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Órdenes con Descuento', val: data.kpi.discountOrders.toLocaleString(), sub: `${discOrderPct.toFixed(1)}% del total de órdenes` },
+          { icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', val: fmt(data.kpi.netSales), sub: `Bruto: ${fmt(data.kpi.grossSales)}` },
+          { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'AOV Promedio', val: fmt(data.kpi.avgOrderValue), sub: `${data.kpi.orders.toLocaleString()} órdenes totales` },
+          { icon: <Percent size={18}/>, WM: Percent, col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos Hoy', val: fmt(data.kpi.discounts), sub: `${discPct.toFixed(1)}% del bruto · ${discOrderPct.toFixed(0)}% de órdenes` },
+          { icon: <AlertTriangle size={18}/>, WM: AlertTriangle, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids Hoy', val: fmt(data.kpi.voids), sub: `${voidPct.toFixed(2)}% del bruto` },
+          { icon: <TrendingDown size={18}/>, WM: TrendingDown, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Órdenes con Descuento', val: data.kpi.discountOrders.toLocaleString(), sub: `${discOrderPct.toFixed(1)}% del total de órdenes` },
         ].map((c, i) => (
-          <div key={i} className="glass-card" style={{ padding: '1.3rem', overflow: 'hidden' }}>
-            <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', marginBottom: '0.8rem' }}>{c.icon}</div>
-            <div style={{ fontFamily: 'Outfit', fontSize: '1.7rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px' }}>{c.val}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+          <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden' }}>
+            <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', marginBottom: '0.8rem' }}>{c.icon}</div>
+              <div style={{ fontFamily: 'Outfit', fontSize: '1.7rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px' }}>{c.val}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{c.label}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px' }}>{c.sub}</div>
+            </div>
           </div>
         ))}
       </div>

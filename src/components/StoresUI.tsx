@@ -243,23 +243,24 @@ export default function StoresUI({
       {/* ── KPI ROW ────────────────────────────────────────────────────────── */}
       <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
         {[
-          { icon: <Store size={20} />, color: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Sucursales Activas', value: activeCount, sub: `${inactiveCount} inactivas` },
-          { icon: <Wifi size={20} />, color: 'var(--success)', bg: 'rgba(46,202,127,0.12)', label: 'Con Analytics', value: entCount, sub: `Sincronizadas con Toast` },
-          { icon: <DollarSign size={20} />, color: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', value: fmt(totalNetSales), sub: `Prom: ${fmt(totalNetSales / (todayByStore.length || 1))} / tienda` },
-          { icon: <Users size={20} />, color: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'Clientes Hoy', value: totalGuests.toLocaleString(), sub: `Ticket: ${totalOrders > 0 ? fmt(totalNetSales / totalOrders) : '—'}` },
-          { icon: <Clock size={20} />, color: totalLaborPct > 30 ? 'var(--danger)' : 'var(--success)', bg: totalLaborPct > 30 ? 'rgba(239,68,68,0.1)' : 'rgba(46,202,127,0.12)', label: 'Labor Cost Hoy', value: fmt(totalLaborCost), sub: `${totalLaborPct.toFixed(1)}% de las ventas` },
+          { icon: <Store size={20} />, WM: Store, color: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Sucursales Activas', value: activeCount, sub: `${inactiveCount} inactivas` },
+          { icon: <Wifi size={20} />, WM: Wifi, color: 'var(--success)', bg: 'rgba(46,202,127,0.12)', label: 'Con Analytics', value: entCount, sub: `Sincronizadas con Toast` },
+          { icon: <DollarSign size={20} />, WM: DollarSign, color: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', value: fmt(totalNetSales), sub: `Prom: ${fmt(totalNetSales / (todayByStore.length || 1))} / tienda` },
+          { icon: <Users size={20} />, WM: Users, color: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'Clientes Hoy', value: totalGuests.toLocaleString(), sub: `Ticket: ${totalOrders > 0 ? fmt(totalNetSales / totalOrders) : '—'}` },
+          { icon: <Clock size={20} />, WM: Clock, color: totalLaborPct > 30 ? 'var(--danger)' : 'var(--success)', bg: totalLaborPct > 30 ? 'rgba(239,68,68,0.1)' : 'rgba(46,202,127,0.12)', label: 'Labor Cost Hoy', value: fmt(totalLaborCost), sub: `${totalLaborPct.toFixed(1)}% de las ventas` },
         ].map((card, i) => (
           <div key={i} className="glass-card" style={{ padding: '1.4rem', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.9rem' }}>
+            <card.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.9rem', position: 'relative', zIndex: 1 }}>
               <div style={{ minWidth: 0, minHeight: 0, width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: card.bg, color: card.color, border: '1px solid rgba(255,255,255,0.05)' }}>
                 {card.icon}
               </div>
             </div>
-            <div style={{ fontFamily: 'Outfit', fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Outfit', fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px', position: 'relative', zIndex: 1 }}>
               {card.value}
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{card.label}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '3px' }}>{card.sub}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', position: 'relative', zIndex: 1 }}>{card.label}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '3px', position: 'relative', zIndex: 1 }}>{card.sub}</div>
           </div>
         ))}
       </div>
