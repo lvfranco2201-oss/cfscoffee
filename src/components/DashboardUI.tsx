@@ -185,12 +185,13 @@ export default function DashboardUI({
           position: 'relative',
           zIndex: 50,
           width: '100%',
-          minHeight: '180px',
+          minHeight: '200px',
           borderRadius: '20px',
           overflow: 'visible',
           marginBottom: '1.75rem',
           display: 'flex',
-          alignItems: 'flex-end',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
           padding: '2rem 2.5rem',
           border: '1px solid var(--border-color)',
           boxShadow: 'var(--shadow-card)',
@@ -206,29 +207,8 @@ export default function DashboardUI({
           zIndex: 1, borderRadius: 'inherit'
         }} />
 
-        {/* Left: Title */}
-        <div style={{ position: 'relative', zIndex: 2, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <div style={{ minWidth: 0, minHeight: 0, background: 'var(--cfs-gold)',
-              width: '4px', height: '28px', borderRadius: '4px', }} />
-            <h1 style={{
-              fontSize: '1.9rem', color: '#FDFBF7', fontWeight: 800,
-              fontFamily: 'Outfit', letterSpacing: '-0.03em',
-              textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-            }}>
-              Dashboard de Ventas
-            </h1>
-          </div>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem', fontWeight: 400, marginLeft: '14px' }}>
-            CFSCoffee · Último cierre:&nbsp;
-            <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'capitalize' }}>
-              {dateFmt}
-            </span>
-          </p>
-        </div>
-
-        {/* Right: Live indicator + theme toggle */}
-        <div className={styles.headerActions} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 2, display: 'flex', gap: '12px' }}>
+        {/* Top: Filters & Live Badge */}
+        <div className={styles.headerActions} style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
           <TopFilters 
             availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} 
             selectedStore={selectedStore}
@@ -244,30 +224,49 @@ export default function DashboardUI({
             <span style={{ minWidth: 0, minHeight: 0, width: '7px', height: '7px', borderRadius: '50%', background: '#2eca7f', boxShadow: '0 0 8px #2eca7f', display: 'inline-block' }} />
             {currentStoresData.length} Tiendas Activas
           </div>
-
-          {/* Theme toggle moved to Sidebar */}
         </div>
 
-        {/* Bottom right: quick summary pills */}
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {[
-            { label: 'Ventas Netas', value: fmtShort(currentKpis.totalNetSales) },
-            { label: 'Órdenes', value: currentKpis.totalOrders.toLocaleString() },
-            { label: 'Clientes', value: currentKpis.totalGuests.toLocaleString() },
-          ].map(item => (
-            <div key={item.label} style={{
-              background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(221,167,86,0.2)',
-              borderRadius: '10px', padding: '6px 14px', textAlign: 'center',
-            }}>
-              <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: 'var(--cfs-gold)' }}>
-                {item.value}
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                {item.label}
-              </div>
+        {/* Bottom: Title & Pills */}
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1.5rem' }}>
+          {/* Left: Title */}
+          <div style={{ flex: '1 1 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <div style={{ minWidth: 0, minHeight: 0, background: 'var(--cfs-gold)', width: '4px', height: '28px', borderRadius: '4px' }} />
+              <h1 style={{
+                fontSize: '1.9rem', color: '#FDFBF7', fontWeight: 800,
+                fontFamily: 'Outfit', letterSpacing: '-0.03em',
+                textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+              }}>
+                Dashboard de Ventas
+              </h1>
             </div>
-          ))}
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem', fontWeight: 400, marginLeft: '14px' }}>
+              CFSCoffee · Último cierre:&nbsp;
+              <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'capitalize' }}>{dateFmt}</span>
+            </p>
+          </div>
+
+          {/* Right: quick summary pills */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Ventas Netas', value: fmtShort(currentKpis.totalNetSales) },
+              { label: 'Órdenes', value: currentKpis.totalOrders.toLocaleString() },
+              { label: 'Clientes', value: currentKpis.totalGuests.toLocaleString() },
+            ].map(item => (
+              <div key={item.label} style={{
+                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(221,167,86,0.2)',
+                borderRadius: '10px', padding: '6px 14px', textAlign: 'center',
+              }}>
+                <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: 'var(--cfs-gold)' }}>
+                  {item.value}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                  {item.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </header>
 
