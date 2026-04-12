@@ -17,6 +17,8 @@ import {
 
 interface VentasData {
   lastDate: string;
+  fromDate?: string;   // Active filter range start
+  toDate?: string;     // Active filter range end
   kpisHoy: {
     netSales: number; grossSales: number; guests: number;
     orders: number; discounts: number; voids: number; refunds: number;
@@ -46,6 +48,7 @@ interface VentasData {
 
 import { cleanStoreName as _cleanRestaurantName } from '@/utils/formatters';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -72,14 +75,25 @@ const WoW = ({ pct }: { pct: number }) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function VentasUI({ data }: { data: VentasData }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [trendRange, setTrendRange] = useState<30 | 60 | 90>(90);
   const [trendMetric, setTrendMetric] = useState<'netSales' | 'guests' | 'orders' | 'discounts'>('netSales');
 
-  // Date label
-  const dateFmt = new Date(data.lastDate + 'T12:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
+  // Date label — uses active locale for correct language formatting
+  const dateLocale = useDateLocale();
+  const fmtShort = (s: string) =>
+    new Date(s + 'T12:00:00').toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const dateFmt = (() => {
+    const from = data.fromDate;
+    const to   = data.toDate;
+    if (from && to && from !== to) {
+      return `${fmtShort(from)} → ${fmtShort(to)}`;
+    }
+    const anchor = (from && from !== data.lastDate) ? from : data.lastDate;
+    return new Date(anchor + 'T12:00:00').toLocaleDateString(dateLocale, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+  })();
 
   // Derived vals
   const avgTicket   = data.kpisHoy.orders  > 0 ? data.kpisHoy.netSales / data.kpisHoy.orders  : 0;
@@ -122,21 +136,21 @@ export default function VentasUI({ data }: { data: VentasData }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
             <div style={{ minWidth: 0, minHeight: 0, background: 'var(--cfs-gold)', width: '4px', height: '26px', borderRadius: '4px' }} />
             <h1 style={{ fontSize: '1.75rem', color: '#FDFBF7', fontWeight: 800, fontFamily: 'Outfit', letterSpacing: '-0.03em' }}>
-              Análisis de Ventas
+              {t('ventas.banner_title')}
             </h1>
           </div>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', marginLeft: '14px' }}>
-            CFSCoffee · Último cierre:&nbsp;
+            CFSCoffee · {t('ventas.last_close_short')}&nbsp;
             <span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, textTransform: 'capitalize' }}>{dateFmt}</span>
           </p>
         </div>
         {/* Pills */}
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {[
-            { l: 'Ventas Hoy',    v: fmtK(data.kpisHoy.netSales) },
-            { l: 'Total 90 Días', v: fmtK(total90) },
-            { l: 'Promedio/Día',  v: fmtK(avg90) },
-            { l: 'Mejor Día',     v: fmtK(best90) },
+            { l: t('ventas.pill_today'),    v: fmtK(data.kpisHoy.netSales) },
+            { l: t('ventas.pill_90d'),      v: fmtK(total90) },
+            { l: t('ventas.pill_avg_day'),  v: fmtK(avg90) },
+            { l: t('ventas.pill_best_day'), v: fmtK(best90) },
           ].map(p => (
             <div key={p.l} style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', border: '1px solid rgba(221,167,86,0.2)', borderRadius: '10px', padding: '5px 12px', textAlign: 'center' }}>
               <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1rem', color: 'var(--cfs-gold)' }}>{p.v}</div>
@@ -149,12 +163,12 @@ export default function VentasUI({ data }: { data: VentasData }) {
       {/* ── KPI ROW ────────────────────────────────────────────────────────── */}
       <div className="grid-cols-6" style={{ marginBottom: '1.75rem' }}>
         {[
-          { href: null, icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Ventas Netas Hoy',  val: fmt(data.kpisHoy.netSales),   sub: `Bruto: ${fmt(data.kpisHoy.grossSales)}`,           wow: data.wowSales },
-          { href: '/clientes', icon: <Users size={18}/>,      WM: Users,      col: 'var(--success)',   bg: 'rgba(46,202,127,0.12)',      label: 'Clientes Hoy',      val: data.kpisHoy.guests.toLocaleString(),  sub: `$/visita: ${fmt(avgPerGuest)}`,             wow: data.wowGuests },
-          { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)',    bg: 'rgba(79,172,254,0.12)',      label: 'Órdenes Cerradas',  val: data.kpisHoy.orders.toLocaleString(),  sub: `Ticket: ${fmt(avgTicket)}` },
-          { href: null, icon: <Percent size={18}/>,    WM: Percent,    col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos',   val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% del bruto` },
-          { href: null, icon: <AlertTriangle size={18}/>, WM: AlertTriangle, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids + Refunds', val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% del bruto (Anulaciones/Cancelaciones)` },
-          { href: null, icon: <Award size={18}/>,      WM: Award,      col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Mejor Día (90d)',    val: fmtK(best90),                 sub: data.topDias[0]?.date ? new Date(data.topDias[0].date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) : '—' },
+          { href: null,        icon: <DollarSign size={18}/>,    WM: DollarSign,    col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: t('ventas.kpi_net_sales_today'), val: fmt(data.kpisHoy.netSales),                            sub: `${t('ventas.kpi_gross_prefix')} ${fmt(data.kpisHoy.grossSales)}`,               wow: data.wowSales },
+          { href: '/clientes', icon: <Users size={18}/>,          WM: Users,          col: 'var(--success)',  bg: 'rgba(46,202,127,0.12)',      label: t('ventas.kpi_customers_today'), val: data.kpisHoy.guests.toLocaleString(),                   sub: `${t('ventas.kpi_visit_prefix')} ${fmt(avgPerGuest)}`,                           wow: data.wowGuests },
+          { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart,  col: 'var(--info)',     bg: 'rgba(79,172,254,0.12)',      label: t('ventas.kpi_orders_closed'),   val: data.kpisHoy.orders.toLocaleString(),                   sub: `${t('ventas.kpi_ticket_prefix')} ${fmt(avgTicket)}` },
+          { href: null,        icon: <Percent size={18}/>,        WM: Percent,        col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: t('ventas.kpi_discounts'), val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% ${t('ventas.kpi_pct_gross')}` },
+          { href: null,        icon: <AlertTriangle size={18}/>,  WM: AlertTriangle,  col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: t('ventas.kpi_voids_refunds'), val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% ${t('ventas.kpi_voids_suffix')}` },
+          { href: null,        icon: <Award size={18}/>,          WM: Award,          col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',       label: t('ventas.kpi_best_day_90'),     val: fmtK(best90),                                           sub: data.topDias[0]?.date ? new Date(data.topDias[0].date + 'T12:00:00').toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' }) : '—' },
         ].map((c, i) => {
           const content = (
             <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden', cursor: c.href ? 'pointer' : 'default', transition: 'all 0.2s', height: '100%' }}>
@@ -177,10 +191,10 @@ export default function VentasUI({ data }: { data: VentasData }) {
       {/* ── SEMANA ACTUAL vs ANTERIOR ──────────────────────────────────────── */}
       <div className="grid-cols-4" style={{ marginBottom: '1.75rem' }}>
         {[
-          { label: 'Ventas — 7 Días', curr: data.currWeek.netSales, prev: data.prevWeek.netSales, pct: data.wowSales, fmt: fmtK },
-          { label: 'Clientes — 7 Días', curr: data.currWeek.guests, prev: data.prevWeek.guests, pct: data.prevWeek.guests > 0 ? ((data.currWeek.guests - data.prevWeek.guests) / data.prevWeek.guests * 100) : 0, fmt: (n: number) => n.toLocaleString() },
-          { label: 'Órdenes — 7 Días', curr: data.currWeek.orders, prev: data.prevWeek.orders, pct: data.prevWeek.orders > 0 ? ((data.currWeek.orders - data.prevWeek.orders) / data.prevWeek.orders * 100) : 0, fmt: (n: number) => n.toLocaleString() },
-          { label: 'Descuentos — 7 Días', curr: data.currWeek.discounts, prev: data.prevWeek.discounts, pct: data.prevWeek.discounts > 0 ? ((data.currWeek.discounts - data.prevWeek.discounts) / data.prevWeek.discounts * 100) : 0, fmt: fmtK },
+          { label: t('ventas.week_sales'),     curr: data.currWeek.netSales,   prev: data.prevWeek.netSales,   pct: data.wowSales,                                                                                                        fmt: fmtK },
+          { label: t('ventas.week_customers'), curr: data.currWeek.guests,     prev: data.prevWeek.guests,     pct: data.prevWeek.guests   > 0 ? ((data.currWeek.guests   - data.prevWeek.guests)   / data.prevWeek.guests   * 100) : 0, fmt: (n: number) => n.toLocaleString() },
+          { label: t('ventas.week_orders'),    curr: data.currWeek.orders,     prev: data.prevWeek.orders,     pct: data.prevWeek.orders   > 0 ? ((data.currWeek.orders   - data.prevWeek.orders)   / data.prevWeek.orders   * 100) : 0, fmt: (n: number) => n.toLocaleString() },
+          { label: t('ventas.week_discounts'), curr: data.currWeek.discounts,  prev: data.prevWeek.discounts,  pct: data.prevWeek.discounts > 0 ? ((data.currWeek.discounts - data.prevWeek.discounts) / data.prevWeek.discounts * 100) : 0, fmt: fmtK },
         ].map((card, i) => {
           const sign = card.pct >= 0;
           const barCurr = card.curr + card.prev > 0 ? (card.curr / (card.curr + card.prev)) * 100 : 50;
@@ -190,7 +204,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.7rem' }}>
                 <div>
                   <div style={{ fontFamily: 'Outfit', fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: '2px' }}>{card.fmt(card.curr)}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>vs {card.fmt(card.prev)} sem. ant.</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('ventas.week_vs')} {card.fmt(card.prev)} {t('ventas.week_prev')}</div>
                 </div>
                 <WoW pct={card.pct} />
               </div>
@@ -200,8 +214,8 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <div style={{ flex: 100 - barCurr, background: 'rgba(255,255,255,0.07)', borderRadius: '0 10px 10px 0' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>Esta semana</span>
-                <span>Semana anterior</span>
+                <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{t('ventas.week_this')}</span>
+                <span>{t('ventas.week_last')}</span>
               </div>
             </div>
           );
@@ -213,15 +227,15 @@ export default function VentasUI({ data }: { data: VentasData }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={16} style={{ color: 'var(--cfs-gold)' }} /> Tendencia Histórica + Media Móvil 7 días
+              <TrendingUp size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.trend_title')}
             </div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Consolidado de toda la cadena · Línea punteada = media móvil
+              {t('ventas.trend_subtitle')}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {/* Metric switcher */}
-            {([['netSales','Ventas'],['guests','Clientes'],['orders','Órdenes'],['discounts','Descuentos']] as const).map(([k, l]) => (
+            {([['netSales', t('ventas.trend_metric_sales')], ['guests', t('ventas.trend_metric_customers')], ['orders', t('ventas.trend_metric_orders')], ['discounts', t('ventas.trend_metric_discounts')]] as const).map(([k, l]) => (
               <button key={k} onClick={() => setTrendMetric(k)}
                 style={{ padding: '5px 12px', borderRadius: '8px', border: '1px solid', cursor: 'pointer',
                   borderColor: trendMetric === k ? 'var(--cfs-gold)' : 'var(--border-color)',
@@ -264,7 +278,13 @@ export default function VentasUI({ data }: { data: VentasData }) {
               <Tooltip cursor={false}
                 contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--cfs-gold)', borderRadius: '10px', fontSize: '0.8rem', boxShadow: 'var(--shadow-card)' }}
                 formatter={(val: any, name: any) => {
-                  const labels: Record<string, string> = { netSales: 'Ventas Netas', guests: 'Clientes', orders: 'Órdenes', discounts: 'Descuentos', ma7: 'Media Móvil 7d' };
+                  const labels: Record<string, string> = {
+                    netSales: t('ventas.trend_tooltip_net_sales'),
+                    guests: t('ventas.trend_metric_customers'),
+                    orders: t('ventas.trend_metric_orders'),
+                    discounts: t('ventas.trend_metric_discounts'),
+                    ma7: t('ventas.trend_tooltip_ma7'),
+                  };
                   const isMoney = name === 'netSales' || name === 'discounts';
                   return [isMoney ? `$${val.toLocaleString()}` : val.toLocaleString(), labels[name] ?? name];
                 }}
@@ -272,7 +292,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
               {/* Reference line: avg */}
               {trendMetric === 'netSales' && (
                 <ReferenceLine y={avg90} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4"
-                  label={{ value: `Prom: ${fmtK(avg90)}`, fill: 'var(--text-muted)', fontSize: 10, position: 'insideTopRight' }} />
+                  label={{ value: `${t('ventas.trend_avg_label')} ${fmtK(avg90)}`, fill: 'var(--text-muted)', fontSize: 10, position: 'insideTopRight' }} />
               )}
               <Area type="monotone" dataKey={trendMetric} stroke="#DDA756" strokeWidth={2} fill="url(#trendGrad)" dot={false} isAnimationActive animationDuration={1200} />
               {trendMetric === 'netSales' && (
@@ -285,10 +305,10 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Summary strip */}
         <div style={{ display: 'flex', gap: '2rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', flexWrap: 'wrap' }}>
           {[
-            { l: `Total ${trendRange}d`, v: trendSliced.length > 0 ? fmtK(trendSliced.reduce((a, d) => a + (d[trendMetric] ?? 0), 0)) : '—' },
-            { l: 'Promedio/día', v: trendSliced.length > 0 ? fmtK(trendSliced.reduce((a, d) => a + (d[trendMetric] ?? 0), 0) / trendSliced.length) : '—' },
-            { l: 'Días con datos', v: trendSliced.filter(d => d.netSales > 0).length.toString() },
-            { l: 'Mejor día del periodo', v: trendSliced.length > 0 ? fmtK(Math.max(...trendSliced.map(d => d[trendMetric] ?? 0))) : '—' },
+            { l: `${t('ventas.trend_total')} ${trendRange}d`, v: trendSliced.length > 0 ? fmtK(trendSliced.reduce((a, d) => a + (d[trendMetric] ?? 0), 0)) : '—' },
+            { l: t('ventas.trend_avg_day'),   v: trendSliced.length > 0 ? fmtK(trendSliced.reduce((a, d) => a + (d[trendMetric] ?? 0), 0) / trendSliced.length) : '—' },
+            { l: t('ventas.trend_days_data'), v: trendSliced.filter(d => d.netSales > 0).length.toString() },
+            { l: t('ventas.trend_best_day'),  v: trendSliced.length > 0 ? fmtK(Math.max(...trendSliced.map(d => d[trendMetric] ?? 0))) : '—' },
           ].map(s => (
             <div key={s.l}>
               <div style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>{s.v}</div>
@@ -304,9 +324,9 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Curva horaria hoy */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Clock size={16} style={{ color: 'var(--cfs-gold)' }} /> Flujo de Ventas por Hora — Hoy
+            <Clock size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.hourly_title')}
           </div>
-          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>Consolidado de todas las sucursales</div>
+          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>{t('ventas.hourly_subtitle')}</div>
           <div style={{ minWidth: 0, minHeight: 0, height: 220 }}>
             <ResponsiveContainer>
               <ComposedChart data={data.peakHours} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -323,8 +343,8 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
                   formatter={(v: any, n: any) => {
-                    if (n === 'ventas') return [`$${v.toLocaleString()}`, 'Ventas'];
-                    if (n === 'clientes') return [v.toLocaleString(), 'Clientes'];
+                    if (n === 'ventas')   return [`$${v.toLocaleString()}`, t('ventas.hourly_tooltip_sales')];
+                    if (n === 'clientes') return [v.toLocaleString(), t('ventas.hourly_tooltip_customers')];
                     return [v, n];
                   }}
                 />
@@ -337,9 +357,9 @@ export default function VentasUI({ data }: { data: VentasData }) {
             const best = data.peakHours.reduce((b, h) => h.ventas > b.ventas ? h : b, data.peakHours[0]);
             return (
               <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
-                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700, color: 'var(--cfs-gold)' }}>{best.time}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hora Pico</div></div>
-                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700 }}>{fmtK(best.ventas)}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Venta Máx/Hora</div></div>
-                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700 }}>{data.peakHours.length}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Horas Activas</div></div>
+                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700, color: 'var(--cfs-gold)' }}>{best.time}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('ventas.hourly_peak')}</div></div>
+                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700 }}>{fmtK(best.ventas)}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('ventas.hourly_max_sales')}</div></div>
+                <div><div style={{ fontFamily: 'Outfit', fontWeight: 700 }}>{data.peakHours.length}</div><div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('ventas.hourly_active')}</div></div>
               </div>
             );
           })()}
@@ -348,10 +368,10 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Ventas promedio por día de semana */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Calendar size={16} style={{ color: 'var(--cfs-gold)' }} /> Promedio por Día de Semana (90d)
+            <Calendar size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.dow_title')}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
-            Venta promedio diaria según el día · {bestDow ? <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{bestDow.day} es el mejor día</span> : null}
+            {t('ventas.dow_subtitle_prefix')} {bestDow ? <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{bestDow.day} {t('ventas.dow_best_suffix')}</span> : null}
           </div>
           <div style={{ minWidth: 0, minHeight: 0, height: 220 }}>
             <ResponsiveContainer>
@@ -361,7 +381,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
                 <Tooltip cursor={false}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '10px', fontSize: '0.78rem' }}
-                  formatter={(v: any) => [`$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, 'Venta Promedio']}
+                  formatter={(v: any) => [`$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, t('ventas.dow_tooltip')]}
                 />
                 <Bar dataKey="avgSales" radius={[8, 8, 0, 0]} barSize={28}>
                   {data.byDow.map((d, i) => (
@@ -380,9 +400,9 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Dining Option */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Utensils size={14} style={{ color: 'var(--cfs-gold)' }} /> Por Tipo de Consumo (30d)
+            <Utensils size={14} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.dining_title')}
           </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>DiningOption — ventas netas</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('ventas.dining_subtitle')}</div>
           {data.byDiningOption.length > 0 ? (
             <>
               <div style={{ minWidth: 0, minHeight: 0, height: 160 }}>
@@ -403,7 +423,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                       <div style={{ minWidth: 0, minHeight: 0, width: '8px', height: '8px', borderRadius: '50%', background: PALETTE[i % PALETTE.length], flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.diningOption ?? 'Sin clasificar'}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.diningOption ?? t('ventas.dining_unclassified')}</span>
                       <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)' }}>{fmtK(d.netSales)}</span>
                       <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', minWidth: '34px', textAlign: 'right' }}>{pct.toFixed(0)}%</span>
                     </div>
@@ -411,15 +431,15 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 })}
               </div>
             </>
-          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Sin datos disponibles.</p>}
+          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{t('ventas.dining_no_data')}</p>}
         </div>
 
         {/* Order Source */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Smartphone size={14} style={{ color: 'var(--cfs-gold)' }} /> Por Fuente de Orden (30d)
+            <Smartphone size={14} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.order_source_title')}
           </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>OrderSource — canales de venta</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('ventas.order_source_subtitle')}</div>
           {data.byOrderSource.length > 0 ? (
             <div style={{ minWidth: 0, minHeight: 0, height: 240 }}>
               <ResponsiveContainer>
@@ -429,22 +449,22 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   <XAxis type="number" tickFormatter={v=>`$${v}`} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)' }}/>
                   <YAxis dataKey="name" type="category" width={80} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)', fontWeight: 600 }}/>
                   <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
-                    formatter={(v: any) => [`$${v.toLocaleString()}`, 'Ventas']}/>
+                    formatter={(v: any) => [`$${v.toLocaleString()}`, t('ventas.order_source_tooltip')]}/>
                   <Bar dataKey="ventas" radius={[0, 8, 8, 0]} barSize={14}>
                     {data.byOrderSource.slice(0, 6).map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Sin datos de fuente de orden.</p>}
+          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{t('ventas.order_source_no_data')}</p>}
         </div>
 
         {/* Revenue Center */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Layers size={14} style={{ color: 'var(--cfs-gold)' }} /> Por Centro de Ingresos (30d)
+            <Layers size={14} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.revenue_center_title')}
           </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>RevenueCenter — áreas de venta</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('ventas.revenue_center_subtitle')}</div>
           {data.byRevenueCenter.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
               {(() => {
@@ -468,7 +488,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 });
               })()}
             </div>
-          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Sin datos de centro de ingresos.</p>}
+          ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{t('ventas.revenue_center_no_data')}</p>}
         </div>
       </div>
 
@@ -478,14 +498,14 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Top 10 mejores días históricos */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <Award size={16} style={{ color: 'var(--cfs-gold)' }} /> Top 10 Mejores Días Históricos
+            <Award size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.top10_title')}
           </div>
-          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>Días con mayor venta neta consolidada</div>
+          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>{t('ventas.top10_subtitle')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             {data.topDias.map((d, i) => {
               const pct = data.topDias[0]?.netSales > 0 ? (d.netSales / data.topDias[0].netSales * 100) : 0;
               const rankCol = i === 0 ? '#DDA756' : i === 1 ? '#94A3B8' : i === 2 ? '#b87333' : 'var(--text-muted)';
-              const dateStr = d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+              const dateStr = d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—';
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderBottom: i < 9 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.8rem', color: rankCol, width: '22px', textAlign: 'center', flexShrink: 0 }}>#{i + 1}</span>
@@ -503,11 +523,11 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {/* Métodos de Pago 30 días */}
         <div className="glass-card" style={{ padding: '1.5rem' }}>
           <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-            <BarChart2 size={16} style={{ color: 'var(--cfs-gold)' }} /> Métodos de Pago — Últimos 30 Días
+            <BarChart2 size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.payments_title')}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
-            Total recaudado: <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{fmtK(totalPayments30)}</span>
-            &nbsp;·&nbsp; Propinas: <span style={{ color: 'var(--success)', fontWeight: 600 }}>{fmtK(data.totalTips30)}</span>
+            {t('ventas.payments_collected')} <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{fmtK(totalPayments30)}</span>
+            &nbsp;·&nbsp; {t('ventas.payments_tips')} <span style={{ color: 'var(--success)', fontWeight: 600 }}>{fmtK(data.totalTips30)}</span>
           </div>
           {data.paymentBreakdown.length > 0 ? (
             <>
@@ -519,7 +539,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                     <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false}/>
                     <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`$${v}`}/>
                     <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }}
-                      formatter={(v: any, n: any) => [`$${v.toLocaleString()}`, n === 'value' ? 'Monto Total' : 'Propinas']}/>
+                      formatter={(v: any, n: any) => [`$${v.toLocaleString()}`, n === 'value' ? t('ventas.payments_total') : t('ventas.tip_tooltip_tips')]}/>
                     <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={22}>
                       {data.paymentBreakdown.slice(0, 8).map((p, i) => <Cell key={i} fill={p.color} />)}
                     </Bar>
@@ -535,7 +555,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flex: 1 }}>{p.name}</span>
                       <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)' }}>{fmtK(p.value)}</span>
                       <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', minWidth: '34px', textAlign: 'right' }}>{pct.toFixed(0)}%</span>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--success)', minWidth: '60px', textAlign: 'right' }}>propinas: {fmtK(p.tips)}</span>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--success)', minWidth: '60px', textAlign: 'right' }}>{t('ventas.payments_tips_label')} {fmtK(p.tips)}</span>
                     </div>
                   );
                 })}
@@ -543,23 +563,24 @@ export default function VentasUI({ data }: { data: VentasData }) {
             </>
           ) : (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'center', padding: '2rem 0' }}>
-              Sin datos de pagos para los últimos 30 días.
+              {t('ventas.payments_no_data')}
             </div>
           )}
         </div>
       </div>
+
       {/* ── MES ACTUAL vs MES ANTERIOR ─────────────────────────────── */}
       {(data.momCurr.netSales > 0 || data.momPrev.netSales > 0) && (
         <div className="glass-card" style={{ padding: '1.5rem', marginTop: '1.25rem' }}>
           <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.2rem' }}>
-            <Calendar size={16} style={{ color: 'var(--cfs-gold)' }} /> Comparativa Mes en Curso vs Mes Anterior
+            <Calendar size={16} style={{ color: 'var(--cfs-gold)' }} /> {t('ventas.mom_title')}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }}>
             {[
-              { label: 'Ventas MTD', curr: data.momCurr.netSales, prev: data.momPrev.netSales, pct: data.momSalesChg, fmtFn: fmtK },
-              { label: 'Clientes MTD', curr: data.momCurr.guests, prev: data.momPrev.guests, pct: data.momGuestsChg, fmtFn: (n: number) => n.toLocaleString() },
-              { label: 'Órdenes MTD', curr: data.momCurr.orders, prev: data.momPrev.orders, pct: data.momPrev.orders > 0 ? ((data.momCurr.orders - data.momPrev.orders) / data.momPrev.orders * 100) : 0, fmtFn: (n: number) => n.toLocaleString() },
-              { label: 'Descuentos MTD', curr: data.momCurr.discounts, prev: data.momPrev.discounts, pct: data.momPrev.discounts > 0 ? ((data.momCurr.discounts - data.momPrev.discounts) / data.momPrev.discounts * 100) : 0, fmtFn: fmtK },
+              { label: t('ventas.mom_sales'),     curr: data.momCurr.netSales,   prev: data.momPrev.netSales,   pct: data.momSalesChg,  fmtFn: fmtK },
+              { label: t('ventas.mom_customers'), curr: data.momCurr.guests,     prev: data.momPrev.guests,     pct: data.momGuestsChg, fmtFn: (n: number) => n.toLocaleString() },
+              { label: t('ventas.mom_orders'),    curr: data.momCurr.orders,     prev: data.momPrev.orders,     pct: data.momPrev.orders    > 0 ? ((data.momCurr.orders    - data.momPrev.orders)    / data.momPrev.orders    * 100) : 0, fmtFn: (n: number) => n.toLocaleString() },
+              { label: t('ventas.mom_discounts'), curr: data.momCurr.discounts,  prev: data.momPrev.discounts,  pct: data.momPrev.discounts > 0 ? ((data.momCurr.discounts  - data.momPrev.discounts)  / data.momPrev.discounts  * 100) : 0, fmtFn: fmtK },
             ].map((c, i) => {
               const up = c.pct >= 0;
               const barW = (c.curr + c.prev) > 0 ? Math.min((c.curr / (c.curr + c.prev)) * 100, 100) : 50;
@@ -570,7 +591,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.5rem' }}>{c.label}</div>
                   <div style={{ fontFamily: 'Outfit', fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: '4px' }}>{c.fmtFn(c.curr)}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>vs {c.fmtFn(c.prev)} mes ant.</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('ventas.mom_vs')} {c.fmtFn(c.prev)} {t('ventas.mom_prev_suffix')}</span>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '1px 7px', borderRadius: '12px', background: up ? 'rgba(46,202,127,0.12)' : 'rgba(239,68,68,0.12)', color: up ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                       {up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}{up ? '+' : ''}{c.pct.toFixed(1)}%
                     </span>
@@ -578,7 +599,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   <div style={{ minWidth: 0, minHeight: 0, height: '5px', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.07)' }}>
                     <div style={{ width: `${barW}%`, height: '100%', background: goodColor, borderRadius: '8px', opacity: 0.8 }} />
                   </div>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '5px' }}>{data.momCurr.days} días vs {data.momPrev.days} días</div>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '5px' }}>{data.momCurr.days} {t('ventas.mom_days_vs')} {data.momPrev.days} {t('ventas.mom_days_suffix')}</div>
                 </div>
               );
             })}
@@ -593,14 +614,14 @@ export default function VentasUI({ data }: { data: VentasData }) {
           {/* Tip Rate Trending 30d */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
             <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-              <Award size={16} style={{ color: '#2eca7f' }} /> Tasa de Propinas — 30 Días
+              <Award size={16} style={{ color: '#2eca7f' }} /> {t('ventas.tip_rate_title')}
             </div>
             {data.tipTrend.length > 0 ? (
               <>
                 <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  <span>Prom: <strong style={{ color: '#2eca7f' }}>{(data.tipTrend.reduce((a, d) => a + d.tipRate, 0) / data.tipTrend.length).toFixed(1)}%</strong></span>
-                  <span>Máx: <strong style={{ color: 'var(--cfs-gold)' }}>{Math.max(...data.tipTrend.map(d => d.tipRate)).toFixed(1)}%</strong></span>
-                  <span>Total props: <strong style={{ color: '#2eca7f' }}>{fmtK(data.totalTips30)}</strong></span>
+                  <span>{t('ventas.tip_avg')} <strong style={{ color: '#2eca7f' }}>{(data.tipTrend.reduce((a, d) => a + d.tipRate, 0) / data.tipTrend.length).toFixed(1)}%</strong></span>
+                  <span>{t('ventas.tip_max')} <strong style={{ color: 'var(--cfs-gold)' }}>{Math.max(...data.tipTrend.map(d => d.tipRate)).toFixed(1)}%</strong></span>
+                  <span>{t('ventas.tip_total')} <strong style={{ color: '#2eca7f' }}>{fmtK(data.totalTips30)}</strong></span>
                 </div>
                 <div style={{ minWidth: 0, minHeight: 0, height: 200 }}>
                   <ResponsiveContainer>
@@ -615,37 +636,37 @@ export default function VentasUI({ data }: { data: VentasData }) {
                       <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} interval="preserveStartEnd"/>
                       <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v=>`${v.toFixed(0)}%`}/>
                       <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#2eca7f', borderRadius: '10px', fontSize: '0.78rem' }}
-                        formatter={(v: any, n: any) => [n === 'tipRate' ? `${v.toFixed(2)}%` : `$${v.toLocaleString()}`, n === 'tipRate' ? 'Tip Rate' : 'Propinas']}/>
+                        formatter={(v: any, n: any) => [n === 'tipRate' ? `${v.toFixed(2)}%` : `$${v.toLocaleString()}`, n === 'tipRate' ? t('ventas.tip_tooltip_rate') : t('ventas.tip_tooltip_tips')]}/>
                       <Area type="monotone" dataKey="tipRate" stroke="#2eca7f" strokeWidth={2.5} fill="url(#tipGrad)" dot={false} isAnimationActive animationDuration={1200}/>
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
               </>
-            ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Sin datos de propinas en los últimos 30 días.</p>}
+            ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{t('ventas.tip_no_data')}</p>}
           </div>
 
           {/* Tip Rate por Restaurante */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
             <div style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'Outfit', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-              <Users size={16} style={{ color: '#2eca7f' }} /> Propinas por Sucursal — 30 Días
+              <Users size={16} style={{ color: '#2eca7f' }} /> {t('ventas.tip_by_store_title')}
             </div>
-            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>Tip Rate% = propinas / monto total pagado</div>
+            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>{t('ventas.tip_by_store_subtitle')}</div>
             {data.tipByRestaurant.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Sin datos por restaurante.</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{t('ventas.tip_by_store_no_data')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                {data.tipByRestaurant.map((t, i) => {
+                {data.tipByRestaurant.map((tip, i) => {
                   const maxRate = Math.max(...data.tipByRestaurant.map(x => x.tipRate));
-                  const barW = maxRate > 0 ? (t.tipRate / maxRate * 100) : 0;
+                  const barW = maxRate > 0 ? (tip.tipRate / maxRate * 100) : 0;
                   const rankCol = i === 0 ? '#DDA756' : i === 1 ? '#94A3B8' : i === 2 ? '#b87333' : 'var(--text-muted)';
                   return (
                     <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.7rem', color: rankCol, width: '20px', flexShrink: 0 }}>#{i+1}</span>
-                        <span style={{ flex: 1, fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                        <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.88rem', color: '#2eca7f' }}>{t.tipRate.toFixed(1)}%</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', minWidth: '60px', textAlign: 'right' }}>${t.avgTipPerTx.toFixed(2)}/tx</span>
-                        <span style={{ fontSize: '0.7rem', color: '#DDA756', minWidth: '52px', textAlign: 'right' }}>{fmtK(t.totalTips)}</span>
+                        <span style={{ flex: 1, fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tip.name}</span>
+                        <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.88rem', color: '#2eca7f' }}>{tip.tipRate.toFixed(1)}%</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', minWidth: '60px', textAlign: 'right' }}>${tip.avgTipPerTx.toFixed(2)}/tx</span>
+                        <span style={{ fontSize: '0.7rem', color: '#DDA756', minWidth: '52px', textAlign: 'right' }}>{fmtK(tip.totalTips)}</span>
                       </div>
                       <div style={{ minWidth: 0, minHeight: 0, marginLeft: '28px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px' }}>
                         <div style={{ width: `${barW}%`, height: '100%', background: '#2eca7f', borderRadius: '4px', opacity: 0.75 }} />

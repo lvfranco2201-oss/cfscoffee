@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cleanStoreName as _cleanName } from '@/utils/formatters';
 import { exportToCSV } from '@/utils/exportCSV';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 import dynamic from 'next/dynamic';
 
@@ -101,9 +102,11 @@ export default function StoresUI({
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
+  const dateLocale = useDateLocale();
+
   // Date label
   const dateFmt = lastBusinessDateStr
-    ? new Date(lastBusinessDateStr + 'T12:00:00').toLocaleDateString('es-ES', {
+    ? new Date(lastBusinessDateStr + 'T12:00:00').toLocaleDateString(dateLocale, {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       })
     : '—';
@@ -486,7 +489,7 @@ export default function StoresUI({
                     {selectedCatalog.timeZone && <span>⏰ {selectedCatalog.timeZone}</span>}
                     {selectedCatalog.locationCode && <span>📍 {selectedCatalog.locationCode}</span>}
                     {selectedCatalog.lastSyncedAt && (
-                      <span>🔄 {new Date(selectedCatalog.lastSyncedAt).toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>🔄 {new Date(selectedCatalog.lastSyncedAt).toLocaleString(dateLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     )}
                     {selectedCatalog.hasEntitlement
                       ? <span style={{ color: 'var(--success)' }}>✓ Analytics OK</span>

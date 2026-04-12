@@ -38,11 +38,14 @@ export function fmtK(n: number): string {
 }
 
 /**
- * Formats a date string (YYYY-MM-DD) into a localised Spanish label.
- * "2026-04-11" → "viernes, 11 de abril de 2026"
+ * Formats a date string (YYYY-MM-DD) into a localised label.
+ * @param dateStr - ISO date string e.g. "2026-04-11"
+ * @param locale  - BCP-47 locale tag, defaults to 'es-ES'
+ * "2026-04-11" + 'es-ES' → "viernes, 11 de abril de 2026"
+ * "2026-04-11" + 'en-US' → "Friday, April 11, 2026"
  */
-export function fmtDateLong(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-ES', {
+export function fmtDateLong(dateStr: string, locale = 'es-ES'): string {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

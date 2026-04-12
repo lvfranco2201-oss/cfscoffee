@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
+import { FilterProvider } from '@/context/FilterContext';
 import ConditionalLayout from '@/components/ConditionalLayout';
 
 export const viewport: Viewport = {
@@ -38,9 +39,11 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <LanguageProvider>
-            <ConditionalLayout>
-              {children}
-            </ConditionalLayout>
+            <FilterProvider>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+            </FilterProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

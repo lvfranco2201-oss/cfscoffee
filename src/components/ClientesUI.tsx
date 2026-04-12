@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { cleanStoreName as _cleanName } from '@/utils/formatters';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 interface ClientesData {
   lastDate: string;
@@ -46,7 +47,8 @@ export default function ClientesUI({ data }: { data: ClientesData }) {
   const [metric, setMetric] = useState<'guests' | 'orders' | 'sales'>('guests');
   const [range, setRange] = useState<30 | 60 | 90>(90);
 
-  const dateFmt = new Date(data.lastDate + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateLocale = useDateLocale();
+  const dateFmt = new Date(data.lastDate + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const bestHour = data.hourly.length > 0 ? data.hourly.reduce((b, h) => h.clientes > b.clientes ? h : b, data.hourly[0]) : null;
   const bestDow = data.byDow.length > 0 ? data.byDow.reduce((b, d) => d.avgGuests > b.avgGuests ? d : b, data.byDow[0]) : null;
   const totalStores = data.byStore.filter(s => s.guests > 0).length;

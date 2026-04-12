@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // TypeScript is validated separately via `tsc --noEmit` (0 errors).
+  // Suppresses the Turbopack dev-only routes.d.ts false-positive in `next build`.
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },

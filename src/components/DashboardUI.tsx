@@ -8,11 +8,13 @@ import {
   ShoppingCart, AlertTriangle, Percent, Clock, Activity, BarChart2
 } from 'lucide-react';
 import styles from '../app/Dashboard.module.css';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useFilter } from '@/context/FilterContext';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { cleanStoreName as _clean, fmt, fmtK as fmtShort } from '@/utils/formatters';
 import TopFilters from './TopFilters';
 
@@ -29,6 +31,7 @@ const DashboardMap = dynamic(() => import('./MapWrapper'), {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface StoreData {
+  storeId?: number | null;   // numeric ID from API — used for context-based filtering
   storeName: string;
   netSales: number;
   grossSales: number;
@@ -71,6 +74,8 @@ interface DashboardUIProps {
     avgGuests: number;
     avgOrders: number;
   };
+  onRefresh?: () => void;
+  loading?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,30 +88,38 @@ const cleanStoreName = (val: string) => _clean(val);
 export default function DashboardUI({
   kpis, storesData, lastDateStr, peakHours, paymentMethods,
   totalTips, totalLaborCost, totalLaborHours, avg30,
+  onRefresh, loading = false,
 }: DashboardUIProps) {
 
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
 
-  const [selectedStore, setSelectedStore] = useState('all');
+  // Read store filter from the global context (synced with TopFilters)
+  const { filter } = useFilter();
+  const selectedStore = filter.store;
 
   const currentStoresData = useMemo(() => {
     if (selectedStore === 'all') return storesData;
-    return storesData.filter(s => s.storeName === selectedStore);
+    // Context store value may be either a storeName or a numeric ID string
+    return storesData.filter(s =>
+      s.storeName === selectedStore ||
+      String((s as any).storeId) === selectedStore
+    );
   }, [storesData, selectedStore]);
 
   const currentKpis = useMemo(() => {
     if (selectedStore === 'all') return kpis;
-    const st = currentStoresData.find(s => s.storeName === selectedStore);
+    const st = currentStoresData[0];
     if (!st) return kpis;
     return {
-      totalNetSales: st.netSales,
+      totalNetSales:   st.netSales,
       totalGrossSales: st.grossSales,
-      totalGuests: st.guests,
-      totalOrders: st.orders,
-      totalDiscounts: st.discounts,
-      totalVoids: st.voids,
-      totalRefunds: st.refunds,
+      totalGuests:     st.guests,
+      totalOrders:     st.orders,
+      totalDiscounts:  st.discounts,
+      totalVoids:      st.voids,
+      totalRefunds:    st.refunds,
     };
   }, [kpis, currentStoresData, selectedStore]);
 
@@ -130,9 +143,12 @@ export default function DashboardUI({
   const topStore = currentStoresData[0];
 
   // ── Date label ───────────────────────────────────────────────────────────
-  const dateFmt = new Date(lastDateStr + 'T12:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
+  // lastDateStr can be a single date or a range like "2026-04-01 → 2026-04-12"
+  const dateFmt = lastDateStr.includes('→')
+    ? lastDateStr  // Already formatted as range
+    : new Date(lastDateStr + 'T12:00:00').toLocaleDateString(dateLocale, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      });
 
   // ── Anomaly detection — flag metrics >20% below 30-day average ─────────────
   const ANOMALY_THRESHOLD = 0.20; // 20% drop triggers warning
@@ -213,9 +229,13 @@ export default function DashboardUI({
         {/* Top: Filters & Live Badge */}
         <div className={styles.headerActions} style={{ position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
           <TopFilters 
-            availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} 
-            selectedStore={selectedStore}
-            onStoreChange={(v) => setSelectedStore(v)}
+            availableStores={storesData
+              .filter(s => s.storeId != null)
+              .map(s => ({ id: String(s.storeId!), name: cleanStoreName(s.storeName) }))
+            } 
+            onApply={() => { /* context handles state — page re-fetches via useEffect */ }}
+            onRefresh={onRefresh}
+            loading={loading}
           />
           {/* Live badge */}
           <div style={{

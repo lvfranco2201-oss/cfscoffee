@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import { Utensils, Smartphone, Layers, Percent, ShoppingCart, DollarSign, AlertTriangle, TrendingDown } from 'lucide-react';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 interface ProductosData {
   lastDate: string;
@@ -21,7 +22,8 @@ const fmtK = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` :
 const COLORS = ['#DDA756', '#3b82f6', '#2eca7f', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899'];
 
 export default function ProductosUI({ data }: { data: ProductosData }) {
-  const dateFmt = new Date(data.lastDate + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateLocale = useDateLocale();
+  const dateFmt = new Date(data.lastDate + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const discPct  = data.kpi.grossSales > 0 ? (data.kpi.discounts / data.kpi.grossSales * 100) : 0;
   const voidPct  = data.kpi.grossSales > 0 ? (data.kpi.voids / data.kpi.grossSales * 100) : 0;
   const discOrderPct = data.kpi.orders > 0 ? (data.kpi.discountOrders / data.kpi.orders * 100) : 0;

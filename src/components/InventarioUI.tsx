@@ -9,6 +9,7 @@ import {
   BarChart2, Zap, AlertTriangle, CheckCircle, Activity, Users, Download,
 } from 'lucide-react';
 import { exportToCSV } from '@/utils/exportCSV';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 interface LaborData {
   lastDate: string;
@@ -31,7 +32,8 @@ const COLOR_SAFE = '#2eca7f'; const COLOR_DANGER = '#ef4444'; const COLOR_WARN =
 const TARGET_LABOR_PCT = 28;
 
 export default function InventarioUI({ data }: { data: LaborData }) {
-  const dateFmt = new Date((data?.lastDate ?? '') + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateLocale = useDateLocale();
+  const dateFmt = new Date((data?.lastDate ?? '') + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   // Defensive guard: if data is incomplete, show empty state
   if (!data?.lastDate) {
