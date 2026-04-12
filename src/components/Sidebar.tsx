@@ -84,9 +84,9 @@ export default function Sidebar() {
     { name: 'Dashboard',    path: '/',          icon: <BarChart3 size={20} /> },
     { name: 'Ventas',       path: '/ventas',     icon: <TrendingUp size={20} /> },
     { name: 'Sucursales',   path: '/sucursales', icon: <Store size={20} /> },
-    { name: 'Inventario',   path: '/inventario', icon: <Package size={20} /> },
-    { name: 'Clientes',     path: '/clientes',   icon: <Users size={20} /> },
-    { name: 'Canales',      path: '/productos',  icon: <Coffee size={20} /> },
+    { name: 'Costos Laborales', path: '/inventario', icon: <Package size={20} /> },
+    { name: 'Clientes',         path: '/clientes',   icon: <Users size={20} /> },
+    { name: 'Productos',        path: '/productos',  icon: <Coffee size={20} /> },
   ];
 
   return (
