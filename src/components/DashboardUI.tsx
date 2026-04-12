@@ -208,7 +208,7 @@ export default function DashboardUI({
         }} />
 
         {/* Top: Filters & Live Badge */}
-        <div className={styles.headerActions} style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
+        <div className={styles.headerActions} style={{ position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
           <TopFilters 
             availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} 
             selectedStore={selectedStore}
