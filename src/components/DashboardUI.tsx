@@ -8,7 +8,7 @@ import {
   ShoppingCart, AlertTriangle, Percent, Clock, Activity, BarChart2
 } from 'lucide-react';
 import styles from '../app/Dashboard.module.css';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useTheme } from '@/context/ThemeContext';
@@ -85,13 +85,36 @@ export default function DashboardUI({
 
   const { theme } = useTheme();
 
+  const [selectedStore, setSelectedStore] = useState('all');
+
+  const currentStoresData = useMemo(() => {
+    if (selectedStore === 'all') return storesData;
+    return storesData.filter(s => s.storeName === selectedStore);
+  }, [storesData, selectedStore]);
+
+  const currentKpis = useMemo(() => {
+    if (selectedStore === 'all') return kpis;
+    const st = currentStoresData.find(s => s.storeName === selectedStore);
+    if (!st) return kpis;
+    return {
+      totalNetSales: st.netSales,
+      totalGrossSales: st.grossSales,
+      totalGuests: st.guests,
+      totalOrders: st.orders,
+      totalDiscounts: st.discounts,
+      totalVoids: st.voids,
+      totalRefunds: st.refunds,
+    };
+  }, [kpis, currentStoresData, selectedStore]);
+
   // ── Derived KPIs ──────────────────────────────────────────────────────────
-  const avgTicket    = kpis.totalOrders  > 0 ? kpis.totalNetSales / kpis.totalOrders : 0;
-  const avgPerGuest  = kpis.totalGuests  > 0 ? kpis.totalNetSales / kpis.totalGuests : 0;
-  const laborPct     = kpis.totalNetSales > 0 ? (totalLaborCost / kpis.totalNetSales) * 100 : 0;
-  const discountPct  = kpis.totalGrossSales > 0 ? (kpis.totalDiscounts / kpis.totalGrossSales) * 100 : 0;
-  const voidPct      = kpis.totalGrossSales > 0 ? (kpis.totalVoids / kpis.totalGrossSales) * 100 : 0;
-  const salesPerLH   = totalLaborHours > 0 ? kpis.totalNetSales / totalLaborHours : 0;
+  const avgTicket    = currentKpis.totalOrders  > 0 ? currentKpis.totalNetSales / currentKpis.totalOrders : 0;
+  const avgPerGuest  = currentKpis.totalGuests  > 0 ? currentKpis.totalNetSales / currentKpis.totalGuests : 0;
+  // labor costs and tips are total since we lack branch breakout in view currently
+  const laborPct     = currentKpis.totalNetSales > 0 ? (totalLaborCost / currentKpis.totalNetSales) * 100 : 0;
+  const discountPct  = currentKpis.totalGrossSales > 0 ? (currentKpis.totalDiscounts / currentKpis.totalGrossSales) * 100 : 0;
+  const voidPct      = currentKpis.totalGrossSales > 0 ? (currentKpis.totalVoids / currentKpis.totalGrossSales) * 100 : 0;
+  const salesPerLH   = totalLaborHours > 0 ? currentKpis.totalNetSales / totalLaborHours : 0;
   const totalPayments = paymentMethods.reduce((a, p) => a + p.value, 0);
 
   // ── Best hour ────────────────────────────────────────────────────────────
@@ -101,7 +124,7 @@ export default function DashboardUI({
   }, [peakHours]);
 
   // ── Top store ────────────────────────────────────────────────────────────
-  const topStore = storesData[0];
+  const topStore = currentStoresData[0];
 
   // ── Date label ───────────────────────────────────────────────────────────
   const dateFmt = new Date(lastDateStr + 'T12:00:00').toLocaleDateString('es-ES', {
@@ -163,7 +186,7 @@ export default function DashboardUI({
           width: '100%',
           minHeight: '180px',
           borderRadius: '20px',
-          overflow: 'hidden',
+          overflow: 'visible',
           marginBottom: '1.75rem',
           display: 'flex',
           alignItems: 'flex-end',
@@ -179,7 +202,7 @@ export default function DashboardUI({
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(100deg, rgba(7,11,20,0.96) 0%, rgba(7,11,20,0.7) 50%, rgba(7,11,20,0.15) 100%)',
-          zIndex: 1,
+          zIndex: 1, borderRadius: 'inherit'
         }} />
 
         {/* Left: Title */}
@@ -205,7 +228,11 @@ export default function DashboardUI({
 
         {/* Right: Live indicator + theme toggle */}
         <div className={styles.headerActions} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 2, display: 'flex', gap: '12px' }}>
-          <TopFilters availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} />
+          <TopFilters 
+            availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} 
+            selectedStore={selectedStore}
+            onStoreChange={(v) => setSelectedStore(v)}
+          />
           {/* Live badge */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '7px',
@@ -214,7 +241,7 @@ export default function DashboardUI({
             padding: '7px 14px', color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', fontWeight: 600,
           }}>
             <span style={{ minWidth: 0, minHeight: 0, width: '7px', height: '7px', borderRadius: '50%', background: '#2eca7f', boxShadow: '0 0 8px #2eca7f', display: 'inline-block' }} />
-            {storesData.length} Tiendas Activas
+            {currentStoresData.length} Tiendas Activas
           </div>
 
           {/* Theme toggle moved to Sidebar */}
@@ -223,9 +250,9 @@ export default function DashboardUI({
         {/* Bottom right: quick summary pills */}
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {[
-            { label: 'Ventas Netas', value: fmtShort(kpis.totalNetSales) },
-            { label: 'Órdenes', value: kpis.totalOrders.toLocaleString() },
-            { label: 'Clientes', value: kpis.totalGuests.toLocaleString() },
+            { label: 'Ventas Netas', value: fmtShort(currentKpis.totalNetSales) },
+            { label: 'Órdenes', value: currentKpis.totalOrders.toLocaleString() },
+            { label: 'Clientes', value: currentKpis.totalGuests.toLocaleString() },
           ].map(item => (
             <div key={item.label} style={{
               background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
@@ -253,9 +280,9 @@ export default function DashboardUI({
           iconStyle={{ background: 'var(--cfs-gold-dim)', color: 'var(--cfs-gold)' }}
           badge="Netas"
           badgeStyle={{ background: 'rgba(221,167,86,0.12)', color: 'var(--cfs-gold)', borderColor: 'rgba(221,167,86,0.25)' }}
-          value={fmt(kpis.totalNetSales)}
+          value={fmt(currentKpis.totalNetSales)}
           label="Ventas Netas"
-          sub={`Bruto: ${fmt(kpis.totalGrossSales)}`}
+          sub={`Bruto: ${fmt(currentKpis.totalGrossSales)}`}
           WatermarkIcon={DollarSign}
         />
 
@@ -264,9 +291,9 @@ export default function DashboardUI({
           href="/clientes"
           icon={<Users size={22} />}
           iconStyle={{ background: 'rgba(46,202,127,0.12)', color: 'var(--success)' }}
-          badge={`${storesData.length} tiendas`}
+          badge={`${currentStoresData.length} tiendas`}
           badgeStyle={{}}
-          value={kpis.totalGuests.toLocaleString()}
+          value={currentKpis.totalGuests.toLocaleString()}
           label="Clientes / Visitas"
           sub={`Ticket promedio: ${fmt(avgPerGuest)}`}
           WatermarkIcon={Users}
@@ -277,7 +304,7 @@ export default function DashboardUI({
           href="/productos"
           icon={<ShoppingCart size={22} />}
           iconStyle={{ background: 'rgba(79,172,254,0.12)', color: 'var(--info)' }}
-          value={kpis.totalOrders.toLocaleString()}
+          value={currentKpis.totalOrders.toLocaleString()}
           label="Órdenes Cerradas"
           sub={`Ticket promedio: ${fmt(avgTicket)}`}
           WatermarkIcon={ShoppingCart}
@@ -294,7 +321,18 @@ export default function DashboardUI({
           WatermarkIcon={WalletCards}
         />
 
-        {/* 5. Costos Laborales */}
+        {/* 5. Descuentos y Voids */}
+        <KpiCard
+          href="/ventas"
+          icon={<AlertTriangle size={22} />}
+          iconStyle={{ background: 'rgba(239,68,68,0.12)', color: 'var(--danger)' }}
+          value={fmt(currentKpis.totalDiscounts)}
+          label="Descuentos & Voids"
+          sub={`Voids/Refunds: ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
+          WatermarkIcon={AlertTriangle}
+        />
+
+        {/* 6. Costos Laborales */}
         <KpiCard
           href="/inventario"
           icon={<DollarSign size={22} />}
@@ -494,12 +532,18 @@ export default function DashboardUI({
                 </tr>
               </thead>
               <tbody>
-                {storesData.map((store, i) => {
+                {currentStoresData.map((store, i) => {
                   const pct = kpis.totalNetSales > 0 ? (store.netSales / kpis.totalNetSales) * 100 : 0;
-                  const maxSales = storesData[0]?.netSales ?? 1;
-                  const barW = Math.round((store.netSales / maxSales) * 80);
+                  const barW = (pct / 100) * 100;
+
                   const avgTicketStore = store.orders > 0 ? store.netSales / store.orders : 0;
-                  const rankStyle = i === 0 ? styles.gold : i === 1 ? styles.silver : i === 2 ? styles.bronze : '';
+
+                  let rankStyle = '';
+                  if (selectedStore === 'all') {
+                    if (i === 0) rankStyle = styles.gold;
+                    else if (i === 1) rankStyle = styles.silver;
+                    else if (i === 2) rankStyle = styles.bronze;
+                  }
 
                   return (
                     <tr key={store.storeName}>
@@ -563,7 +607,7 @@ export default function DashboardUI({
               target={10}
               color={discountPct > 10 ? 'var(--warning)' : 'var(--success)'}
               format={`${discountPct.toFixed(1)}%`}
-              caption={fmt(kpis.totalDiscounts)}
+              caption={fmt(currentKpis.totalDiscounts)}
             />
 
             <EfficiencyBar
@@ -573,7 +617,7 @@ export default function DashboardUI({
               target={2}
               color={voidPct > 2 ? 'var(--danger)' : 'var(--success)'}
               format={`${voidPct.toFixed(2)}%`}
-              caption={`${fmt(kpis.totalVoids ?? 0)} · Cancelaciones o anulaciones de caja`}
+              caption={`${fmt(currentKpis.totalVoids ?? 0)} · Cancelaciones o anulaciones de caja`}
             />
 
             {/* Sales Per Labor Hour */}
