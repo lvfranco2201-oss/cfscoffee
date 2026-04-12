@@ -85,7 +85,7 @@ export default function TopFilters({
   onDateChange = () => {},
   onStoreChange = () => {},
   selectedStore = 'all',
-  selectedDate = 'last_30',
+  selectedDate = 'today',
   availableStores = [],
 }: TopFiltersProps) {
   
@@ -101,11 +101,11 @@ export default function TopFilters({
   ];
 
   const dateOptions = [
-    { id: 'today', label: 'Hoy' },
-    { id: 'yesterday', label: 'Ayer' },
-    { id: 'last_7', label: 'Últimos 7 Días' },
-    { id: 'last_30', label: 'Últimos 30 Días' },
-    { id: 'ytd', label: 'YTD' },
+    { id: 'today', label: 'Cierre Actual' },
+    { id: 'yesterday', label: 'Ayer', disabled: true },
+    { id: 'last_7', label: 'Últimos 7 Días', disabled: true },
+    { id: 'last_30', label: 'Últimos 30 Días', disabled: true },
+    { id: 'ytd', label: 'YTD', disabled: true },
     { id: 'custom', label: 'Personalizado...', disabled: true },
   ];
 
