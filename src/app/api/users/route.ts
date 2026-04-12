@@ -113,6 +113,57 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PUT(req: Request) {
+  const auth = await requireAdmin();
+  if (!auth.authorized) {
+    return NextResponse.json({ error: auth.error }, { status: 403 });
+  }
+
+  try {
+    const { id, email, password, full_name, role } = await req.json();
+
+    if (!id || !email || !full_name) {
+      return NextResponse.json({ error: 'Faltan campos requeridos (id, email, full_name)' }, { status: 400 });
+    }
+
+    if (!['ADMIN', 'MANAGER'].includes(role)) {
+      return NextResponse.json({ error: 'Rol inválido. Use ADMIN o MANAGER.' }, { status: 400 });
+    }
+
+    const updateData: any = {
+      email,
+      user_metadata: { full_name, role },
+    };
+
+    if (password && password.trim() !== '') {
+      updateData.password = password;
+    }
+
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      id,
+      updateData
+    );
+
+    if (authError) throw authError;
+
+    // Actualizar también en profiles (ignorar si falla)
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles')
+      .update({ full_name, role })
+      .eq('id', id);
+
+    if (updateError && updateError.code !== '42P01') {
+      console.warn('Could not update profiles table:', updateError.message);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Update user error:', msg);
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+}
+
 export async function DELETE(req: Request) {
   const auth = await requireAdmin();
   if (!auth.authorized) {

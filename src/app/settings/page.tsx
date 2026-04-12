@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Users, Shield, Plus, Trash2, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { Users, Shield, Plus, Trash2, Edit2, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 
 type Profile = {
   id: string;
@@ -63,6 +63,7 @@ export default function SettingsPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -100,26 +101,52 @@ export default function SettingsPage() {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleOpenAdd = () => {
+    setEditingUser(null);
+    setNewEmail(''); setNewPassword(''); setNewName(''); setNewRole('MANAGER');
+    setShowAddModal(true);
+  };
+
+  const handleOpenEdit = (user: Profile) => {
+    setEditingUser(user);
+    setNewName(user.full_name || '');
+    setNewEmail(user.email || '');
+    setNewRole(user.role || 'MANAGER');
+    setNewPassword(''); // blank to keep current
+    setShowAddModal(true);
+  };
+
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const method = editingUser ? 'PUT' : 'POST';
+      const bodyPayload = { 
+        id: editingUser?.id, 
+        email: newEmail, 
+        password: newPassword, 
+        full_name: newName, 
+        role: newRole 
+      };
+
       const res = await fetch('/api/users', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newEmail, password: newPassword, full_name: newName, role: newRole }),
+        body: JSON.stringify(bodyPayload),
       });
+
       const data = await res.json();
       if (res.ok) {
         setShowAddModal(false);
+        setEditingUser(null);
         setNewEmail(''); setNewPassword(''); setNewName(''); setNewRole('MANAGER');
-        addToast('success', `Usuario ${newName} creado con éxito.`);
+        addToast('success', `Usuario ${newName} ${editingUser ? 'actualizado' : 'creado'} con éxito.`);
         fetchUsers();
       } else {
-        addToast('error', data.error ?? 'Error al crear usuario.');
+        addToast('error', data.error ?? 'Error al guardar usuario.');
       }
     } catch {
-      addToast('error', 'Error de conexión al crear usuario.');
+      addToast('error', 'Error de conexión al guardar usuario.');
     } finally {
       setIsSaving(false);
     }
@@ -168,7 +195,7 @@ export default function SettingsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={handleOpenAdd}
           style={{
             background: 'linear-gradient(135deg, var(--cfs-gold) 0%, #b8860b 100%)',
             color: '#fff', padding: '10px 20px', borderRadius: '12px',
@@ -233,13 +260,22 @@ export default function SettingsPage() {
                       {new Date(u.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
                     <td style={{ padding: '1rem 1.5rem' }}>
-                      <button
-                        onClick={() => setConfirmDelete(u.id)}
-                        style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', padding: '6px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', fontFamily: 'inherit', cursor: 'pointer' }}
-                        title="Eliminar acceso"
-                      >
-                        <Trash2 size={14} /> Eliminar
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleOpenEdit(u)}
+                          style={{ color: 'var(--cfs-gold)', background: 'rgba(221,167,86,0.08)', border: '1px solid rgba(221,167,86,0.2)', padding: '6px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', fontFamily: 'inherit', cursor: 'pointer' }}
+                          title="Editar acceso"
+                        >
+                          <Edit2 size={14} /> Editar
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(u.id)}
+                          style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', padding: '6px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', fontFamily: 'inherit', cursor: 'pointer' }}
+                          title="Eliminar acceso"
+                        >
+                          <Trash2 size={14} /> Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -249,40 +285,48 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* ── Modal Crear Usuario ─────────────────────────────────────────── */}
+      {/* ── Modal Crear/Editar Usuario ─────────────────────────────────────────── */}
       {showAddModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9997, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '460px', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9997, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)', padding: '1rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '460px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Outfit' }}>Crear Nuevo Acceso</h3>
+              <h3 style={{ fontFamily: 'Outfit' }}>{editingUser ? 'Editar Acceso' : 'Crear Nuevo Acceso'}</h3>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', color: 'var(--text-muted)', padding: '4px' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleSaveUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {[
-                { label: 'Nombre Completo', value: newName, onChange: setNewName, type: 'text', placeholder: 'Ej: Carlos Manager' },
-                { label: 'Correo Electrónico', value: newEmail, onChange: setNewEmail, type: 'email', placeholder: 'carlos@cfscoffee.com' },
-                { label: 'Contraseña', value: newPassword, onChange: setNewPassword, type: 'password', placeholder: 'Mínimo 6 caracteres' },
+                { label: 'Nombre Completo', value: newName, onChange: setNewName, type: 'text', placeholder: 'Ej: Carlos Manager', req: true },
+                { label: 'Correo Electrónico', value: newEmail, onChange: setNewEmail, type: 'email', placeholder: 'carlos@cfscoffee.com', req: true },
+                { label: 'Contraseña', value: newPassword, onChange: setNewPassword, type: 'password', placeholder: editingUser ? 'Dejar en blanco para no cambiar' : 'Mínimo 6 caracteres', req: !editingUser },
               ].map(f => (
                 <div key={f.label}>
                   <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: 600 }}>{f.label}</label>
-                  <input required value={f.value} onChange={e => f.onChange(e.target.value)} type={f.type} style={inputStyle} placeholder={f.placeholder} />
+                  <input required={f.req} value={f.value} onChange={e => f.onChange(e.target.value)} type={f.type} style={inputStyle} placeholder={f.placeholder} />
                 </div>
               ))}
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Nivel de Acceso</label>
-                <select value={newRole} onChange={e => setNewRole(e.target.value as 'ADMIN' | 'MANAGER')} style={inputStyle}>
-                  <option value="MANAGER">Store Manager — Lectura de métricas</option>
-                  <option value="ADMIN">Administrador — Control total</option>
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <select value={newRole} onChange={e => setNewRole(e.target.value as 'ADMIN' | 'MANAGER')} style={{
+                    ...inputStyle, 
+                    appearance: 'none', WebkitAppearance: 'none',
+                    backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>')`,
+                    backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center',
+                    cursor: 'pointer'
+                  }}>
+                    <option value="MANAGER" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Store Manager — Lectura de métricas</option>
+                    <option value="ADMIN" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Administrador — Control total</option>
+                  </select>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '10px', color: 'var(--text-main)', fontFamily: 'inherit' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '10px', color: 'var(--text-main)', fontFamily: 'inherit', cursor: 'pointer' }}>
                   Cancelar
                 </button>
                 <button type="submit" disabled={isSaving} style={{ flex: 1, padding: '12px', background: isSaving ? 'rgba(221,167,86,0.5)' : 'var(--cfs-gold)', border: 'none', borderRadius: '10px', color: '#000', fontFamily: 'Outfit', fontWeight: 700, cursor: isSaving ? 'not-allowed' : 'pointer' }}>
-                  {isSaving ? 'Creando…' : 'Crear Acceso'}
+                  {isSaving ? 'Guardando…' : (editingUser ? 'Guardar Cambios' : 'Crear Acceso')}
                 </button>
               </div>
             </form>
