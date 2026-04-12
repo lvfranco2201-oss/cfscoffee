@@ -1,0 +1,32 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "ventas": "Ventas",
+    "sucursales": "Sucursales",
+    "costos_laborales": "Costos Laborales",
+    "clientes": "Clientes",
+    "productos": "Productos",
+    "modo_claro": "Modo Claro",
+    "modo_oscuro": "Modo Oscuro",
+    "menu_principal": "MENÚ PRINCIPAL"
+  },
+  "dashboard": {
+    "title": "Dashboard de Ventas",
+    "last_close": "Último cierre:",
+    "active_stores": "Tiendas Activas",
+    "net_sales": "Ventas Netas",
+    "gross_sales": "Ventas Brutas",
+    "orders": "Órdenes",
+    "customers": "Clientes",
+    "discounts": "Descuentos",
+    "labor_costs": "Costos Laborales",
+    "tips": "Propinas",
+    "hours_worked": "horas trabajadas",
+    "day_gratuities": "Gratificaciones del día",
+    "voids_refunds": "Descuentos & Voids",
+    "closed_orders": "Órdenes cerradas",
+    "avg_ticket": "Ticket promedio:",
+    "all_stores": "Todas las Sucursales",
+    "current_close": "Cierre Actual"
+  }
+}

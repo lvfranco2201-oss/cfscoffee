@@ -14,17 +14,20 @@ import {
   LogOut,
   Sun,
   Moon,
+  Globe,
   RefreshCw,
-  Check,
+  Check
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 import { createClient } from '@/utils/supabase/client';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { t, locale, toggleLanguage } = useTranslation();
 
   const [userName, setUserName] = useState<string>('Admin');
   const [userRole, setUserRole] = useState<string>('Gerente General');
@@ -81,12 +84,12 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: 'Dashboard',    path: '/',          icon: <BarChart3 size={20} /> },
-    { name: 'Ventas',       path: '/ventas',     icon: <TrendingUp size={20} /> },
-    { name: 'Sucursales',   path: '/sucursales', icon: <Store size={20} /> },
-    { name: 'Costos Laborales', path: '/inventario', icon: <Package size={20} /> },
-    { name: 'Clientes',         path: '/clientes',   icon: <Users size={20} /> },
-    { name: 'Productos',        path: '/productos',  icon: <Coffee size={20} /> },
+    { name: t('sidebar.dashboard'),        path: '/',           icon: <BarChart3 size={20} /> },
+    { name: t('sidebar.ventas'),           path: '/ventas',     icon: <TrendingUp size={20} /> },
+    { name: t('sidebar.sucursales'),       path: '/sucursales', icon: <Store size={20} /> },
+    { name: t('sidebar.costos_laborales'), path: '/inventario', icon: <Package size={20} /> },
+    { name: t('sidebar.clientes'),         path: '/clientes',   icon: <Users size={20} /> },
+    { name: t('sidebar.productos'),        path: '/productos',  icon: <Coffee size={20} /> },
   ];
 
   return (
@@ -105,7 +108,7 @@ export default function Sidebar() {
 
       {/* MENÚ PRINCIPAL */}
       <nav className={styles.nav}>
-        <div className={styles.navSection}>MENÚ PRINCIPAL</div>
+        <div className={styles.navSection}>{t('sidebar.menu_principal')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {navItems.map((item) => {
             const isActive = pathname === item.path;
@@ -141,28 +144,34 @@ export default function Sidebar() {
           />
         </div>
 
+        {/* Language toggle */}
+        <button
+          onClick={toggleLanguage}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+            padding: '8px 12px', borderRadius: '10px',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+            color: 'var(--cfs-slate)', fontSize: '0.82rem', fontWeight: 500,
+            marginBottom: '0.4rem', cursor: 'pointer', transition: 'all 0.2s',
+          }}
+        >
+          <Globe size={15} />
+          {locale === 'en' ? 'Español' : 'English'}
+        </button>
+
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            width: '100%',
-            padding: '8px 12px',
-            borderRadius: '10px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            color: 'var(--cfs-slate)',
-            fontSize: '0.82rem',
-            fontWeight: 500,
-            marginBottom: '0.4rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+            padding: '8px 12px', borderRadius: '10px',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+            color: 'var(--cfs-slate)', fontSize: '0.82rem', fontWeight: 500,
+            marginBottom: '0.4rem', cursor: 'pointer', transition: 'all 0.2s',
           }}
         >
           {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
+          {theme === 'dark' ? t('sidebar.modo_claro') : t('sidebar.modo_oscuro')}
         </button>
 
         {/* <Link href="/settings" className={styles.navItem}>

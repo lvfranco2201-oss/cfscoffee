@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 
 export const viewport: Viewport = {
   themeColor: '#070B14',
@@ -36,12 +37,14 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <div className="layout-container">
-            <Sidebar />
-            <main className="main-content">
-              {children}
-            </main>
-          </div>
+          <LanguageProvider>
+            <div className="layout-container">
+              <Sidebar />
+              <main className="main-content">
+                {children}
+              </main>
+            </div>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

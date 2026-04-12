@@ -1,0 +1,32 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "ventas": "Sales",
+    "sucursales": "Stores",
+    "costos_laborales": "Labor Costs",
+    "clientes": "Customers",
+    "productos": "Products",
+    "modo_claro": "Light Mode",
+    "modo_oscuro": "Dark Mode",
+    "menu_principal": "MAIN MENU"
+  },
+  "dashboard": {
+    "title": "Sales Dashboard",
+    "last_close": "Last close:",
+    "active_stores": "Active Stores",
+    "net_sales": "Net Sales",
+    "gross_sales": "Gross Sales",
+    "orders": "Orders",
+    "customers": "Customers",
+    "discounts": "Discounts",
+    "labor_costs": "Labor Costs",
+    "tips": "Tips",
+    "hours_worked": "hours worked",
+    "day_gratuities": "Daily gratuities",
+    "voids_refunds": "Voids & Refunds",
+    "closed_orders": "Closed Orders",
+    "avg_ticket": "Avg ticket:",
+    "all_stores": "All Stores",
+    "current_close": "Current Close"
+  }
+}
