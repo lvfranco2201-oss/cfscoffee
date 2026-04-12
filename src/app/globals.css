@@ -183,6 +183,10 @@ button {
   flex-direction: column;
   z-index: 50;
   backdrop-filter: blur(20px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 
 .main-content {
