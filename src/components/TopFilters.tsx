@@ -33,14 +33,14 @@ function CustomDropdown({ icon: Icon, value, options, onChange }: {
         onClick={() => setOpen(!open)}
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
-          background: 'transparent', border: 'none', color: 'var(--text-main)',
+          background: 'transparent', border: 'none', color: 'rgba(255, 255, 255, 0.95)',
           fontSize: '0.82rem', fontWeight: 600, padding: '4px 6px',
           borderRadius: '8px', cursor: 'pointer', outline: 'none'
         }}
       >
-        <Icon size={14} style={{ color: 'var(--text-muted)' }} />
+        <Icon size={14} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
         {selectedOption.label}
-        <ChevronDown size={14} style={{ color: 'var(--text-muted)', marginLeft: '2px', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        <ChevronDown size={14} style={{ color: 'rgba(255, 255, 255, 0.7)', marginLeft: '2px', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </button>
 
       {open && (
@@ -93,7 +93,14 @@ export default function TopFilters({
   const [date, setDate] = useState(selectedDate);
 
   const handleStore = (v: string) => { setStore(v); onStoreChange(v); }
-  const handleDate = (v: string) => { setDate(v); onDateChange(v); }
+  const handleDate = (v: string) => { 
+    if (v !== 'today') {
+      alert("🚧 El motor de cubos OLAP para fechas históricas está en fase de despliegue. Por seguridad financiera temporalmente solo se cargan los datos del último cierre (Cierre Actual).");
+      return;
+    }
+    setDate(v); 
+    onDateChange(v); 
+  }
 
   const storeOptions = [
     { id: 'all', label: 'Todas las Sucursales' },
