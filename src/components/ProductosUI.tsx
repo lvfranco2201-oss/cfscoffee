@@ -59,7 +59,6 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
 
       {/* KPI CARDS */}
       <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
-      <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
         {[
           { icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', val: fmt(data.kpi.netSales), sub: `Bruto: ${fmt(data.kpi.grossSales)}` },
           { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'AOV Promedio', val: fmt(data.kpi.avgOrderValue), sub: `${data.kpi.orders.toLocaleString()} órdenes totales` },

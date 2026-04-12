@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useTheme } from '@/context/ThemeContext';
 import { cleanStoreName as _clean, fmt, fmtK as fmtShort } from '@/utils/formatters';
+import TopFilters from './TopFilters';
 
 const DashboardMap = dynamic(() => import('./MapWrapper'), {
   ssr: false,
@@ -202,7 +203,8 @@ export default function DashboardUI({
         </div>
 
         {/* Right: Live indicator + theme toggle */}
-        <div className={styles.headerActions} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 2 }}>
+        <div className={styles.headerActions} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 2, display: 'flex', gap: '12px' }}>
+          <TopFilters />
           {/* Live badge */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '7px',
