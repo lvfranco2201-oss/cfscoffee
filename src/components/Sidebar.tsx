@@ -109,24 +109,25 @@ export default function Sidebar() {
       {/* MENÚ PRINCIPAL */}
       <nav className={styles.nav}>
         <div className={styles.navSection}>{t('sidebar.menu_principal')}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <Link
-                key={item.name}
-                href={item.path}
-                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-                style={{ padding: '10px 14px' }}
-              >
-                <div style={{ color: isActive ? 'var(--cfs-gold)' : 'var(--cfs-slate)' }}>
-                  {item.icon}
-                </div>
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive ? '#DDA756' : '#94A3B8' }}>
+                {isActive && (
+                  <span style={{ position: 'absolute', inset: -4, background: 'rgba(221, 167, 86, 0.4)', filter: 'blur(8px)', borderRadius: '50%', zIndex: 0 }} />
+                )}
+                {/* Asegurar que el icono quede delante del resplandor */}
+                <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
+              </div>
+              <span className={styles.navItemText}>{item.name}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div style={{ flexGrow: 1 }} />
