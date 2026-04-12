@@ -41,10 +41,9 @@ export async function proxy(request: NextRequest) {
 
   // ── 2. Not authenticated ────────────────────────────────────────────────────
   if (!user && !isPublicRoute) {
-    // TEMPORARY BYPASS FOR DEBUGGING
-    // const url = request.nextUrl.clone();
-    // url.pathname = '/login';
-    // return NextResponse.redirect(url);
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
   // ── 3. Authenticated user hitting /login → dashboard ────────────────────────
