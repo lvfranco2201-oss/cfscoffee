@@ -158,6 +158,18 @@ export const getDashboardMetrics = unstable_cache(
       { name: 'Efectivo',          value: totalCash, color: 'var(--info)' },
     ].filter(p => p.value > 0);
 
+    // Compensar la diferencia (Terceros / UberEats / Desfase de cierres) estimando con Ventas Netas
+    const sumPayments = totalCard + totalCash;
+    const netSales = consolidadoHoy[0]?.totalNetSales ?? 0;
+    const estimatedExpected = netSales + totalTips;
+    if (estimatedExpected > sumPayments) {
+      paymentMethods.push({
+        name: 'Plataformas / Otros',
+        value: estimatedExpected - sumPayments,
+        color: '#94A3B8', // Un gris neutro o plata
+      });
+    }
+
     return {
       lastBusinessDateStr,
       kpis: consolidadoHoy[0],

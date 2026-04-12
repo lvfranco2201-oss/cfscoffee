@@ -408,6 +408,18 @@ export async function getVentasMetricsFiltered(filter: VentasFilter) {
     }
   });
 
+  const expectedSumVentas = kpisPeriod[0]?.netSales ? Number(kpisPeriod[0].netSales) + (tipsRes[0]?.total ?? 0) : 0;
+  const currentSumVentas = totalCash + totalCard;
+  if (expectedSumVentas > currentSumVentas && currentSumVentas > 0) {
+    paymentBreakdown.push({
+      name: 'Plataformas / Delivery',
+      value: expectedSumVentas - currentSumVentas,
+      tips: 0,
+      txCount: 0,
+      color: '#94A3B8'
+    });
+  }
+
   // Tip trend
   const tipTrendFormatted = toRows(tipTrend30).map((d: unknown) => {
     const row = d as Record<string, unknown>;
