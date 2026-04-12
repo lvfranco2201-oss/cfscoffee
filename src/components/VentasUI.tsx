@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line,
@@ -146,26 +147,29 @@ export default function VentasUI({ data }: { data: VentasData }) {
       {/* ── KPI ROW ────────────────────────────────────────────────────────── */}
       <div className="grid-cols-6" style={{ marginBottom: '1.75rem' }}>
         {[
-          { icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Ventas Netas Hoy',  val: fmt(data.kpisHoy.netSales),   sub: `Bruto: ${fmt(data.kpisHoy.grossSales)}`,           wow: data.wowSales },
-          { icon: <Users size={18}/>,      WM: Users,      col: 'var(--success)',   bg: 'rgba(46,202,127,0.12)',      label: 'Clientes Hoy',      val: data.kpisHoy.guests.toLocaleString(),  sub: `$/visita: ${fmt(avgPerGuest)}`,             wow: data.wowGuests },
-          { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)',    bg: 'rgba(79,172,254,0.12)',      label: 'Órdenes Cerradas',  val: data.kpisHoy.orders.toLocaleString(),  sub: `Ticket: ${fmt(avgTicket)}` },
-          { icon: <Percent size={18}/>,    WM: Percent,    col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos',   val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% del bruto` },
-          { icon: <AlertTriangle size={18}/>, WM: AlertTriangle, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids + Refunds', val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% del bruto` },
-          { icon: <Award size={18}/>,      WM: Award,      col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Mejor Día (90d)',    val: fmtK(best90),                 sub: data.topDias[0]?.date ? new Date(data.topDias[0].date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) : '—' },
-        ].map((c, i) => (
-          <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden' }}>
-            <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem', position: 'relative', zIndex: 1 }}>
-              <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-                {c.icon}
+          { href: null, icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Ventas Netas Hoy',  val: fmt(data.kpisHoy.netSales),   sub: `Bruto: ${fmt(data.kpisHoy.grossSales)}`,           wow: data.wowSales },
+          { href: '/clientes', icon: <Users size={18}/>,      WM: Users,      col: 'var(--success)',   bg: 'rgba(46,202,127,0.12)',      label: 'Clientes Hoy',      val: data.kpisHoy.guests.toLocaleString(),  sub: `$/visita: ${fmt(avgPerGuest)}`,             wow: data.wowGuests },
+          { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)',    bg: 'rgba(79,172,254,0.12)',      label: 'Órdenes Cerradas',  val: data.kpisHoy.orders.toLocaleString(),  sub: `Ticket: ${fmt(avgTicket)}` },
+          { href: null, icon: <Percent size={18}/>,    WM: Percent,    col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos',   val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% del bruto` },
+          { href: null, icon: <AlertTriangle size={18}/>, WM: AlertTriangle, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids + Refunds', val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% del bruto (Anulaciones/Cancelaciones)` },
+          { href: null, icon: <Award size={18}/>,      WM: Award,      col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: 'Mejor Día (90d)',    val: fmtK(best90),                 sub: data.topDias[0]?.date ? new Date(data.topDias[0].date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }) : '—' },
+        ].map((c, i) => {
+          const content = (
+            <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden', cursor: c.href ? 'pointer' : 'default', transition: 'all 0.2s', height: '100%' }}>
+              <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem', position: 'relative', zIndex: 1 }}>
+                <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                  {c.icon}
+                </div>
+                {c.wow !== undefined && <WoW pct={c.wow} />}
               </div>
-              {c.wow !== undefined && <WoW pct={c.wow} />}
+              <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px', position: 'relative', zIndex: 1 }}>{c.val}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', position: 'relative', zIndex: 1 }}>{c.label}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px', position: 'relative', zIndex: 1 }}>{c.sub}</div>
             </div>
-            <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px', position: 'relative', zIndex: 1 }}>{c.val}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', position: 'relative', zIndex: 1 }}>{c.label}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', opacity: 0.6, marginTop: '2px', position: 'relative', zIndex: 1 }}>{c.sub}</div>
-          </div>
-        ))}
+          );
+          return c.href ? <Link href={c.href} key={i} style={{ textDecoration: 'none', display: 'block' }}>{content}</Link> : content;
+        })}
       </div>
 
       {/* ── SEMANA ACTUAL vs ANTERIOR ──────────────────────────────────────── */}

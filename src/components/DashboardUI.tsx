@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import styles from '../app/Dashboard.module.css';
 import { useMemo } from 'react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useTheme } from '@/context/ThemeContext';
 import { cleanStoreName as _clean, fmt, fmtK as fmtShort } from '@/utils/formatters';
@@ -247,6 +248,7 @@ export default function DashboardUI({
 
         {/* 1. Ventas Netas */}
         <KpiCard
+          href="/ventas"
           icon={<DollarSign size={22} />}
           iconStyle={{ background: 'var(--cfs-gold-dim)', color: 'var(--cfs-gold)' }}
           badge="Netas"
@@ -259,6 +261,7 @@ export default function DashboardUI({
 
         {/* 2. Clientes / Visitas */}
         <KpiCard
+          href="/clientes"
           icon={<Users size={22} />}
           iconStyle={{ background: 'rgba(46,202,127,0.12)', color: 'var(--success)' }}
           badge={`${storesData.length} tiendas`}
@@ -271,6 +274,7 @@ export default function DashboardUI({
 
         {/* 3. Órdenes + Ticket */}
         <KpiCard
+          href="/productos"
           icon={<ShoppingCart size={22} />}
           iconStyle={{ background: 'rgba(79,172,254,0.12)', color: 'var(--info)' }}
           value={kpis.totalOrders.toLocaleString()}
@@ -281,6 +285,7 @@ export default function DashboardUI({
 
         {/* 4. Propinas */}
         <KpiCard
+          href="/ventas"
           icon={<WalletCards size={22} />}
           iconStyle={{ background: 'rgba(253,251,247,0.08)', color: 'var(--cfs-cream)' }}
           value={fmt(totalTips)}
@@ -291,6 +296,7 @@ export default function DashboardUI({
 
         {/* 5. Costos Laborales */}
         <KpiCard
+          href="/inventario"
           icon={<DollarSign size={22} />}
           iconStyle={{ background: 'rgba(239,68,68,0.1)', color: 'var(--danger)' }}
           badge={`${laborPct.toFixed(1)}% ventas`}
@@ -531,7 +537,7 @@ export default function DashboardUI({
         </div>
 
         {/* D) Eficiencia Operacional — col 4 */}
-        <div className={`glass-card ${styles.col4}`}>
+        <div className={`glass-card ${styles.col4}`} style={{ height: 'max-content' }}>
           <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
             <Percent size={16} style={{ color: 'var(--cfs-gold)' }} />
             Eficiencia Operacional
@@ -567,7 +573,7 @@ export default function DashboardUI({
               target={2}
               color={voidPct > 2 ? 'var(--danger)' : 'var(--success)'}
               format={`${voidPct.toFixed(2)}%`}
-              caption={fmt(kpis.totalVoids ?? 0)}
+              caption={`${fmt(kpis.totalVoids ?? 0)} · Cancelaciones o anulaciones de caja`}
             />
 
             {/* Sales Per Labor Hour */}
@@ -678,7 +684,7 @@ export default function DashboardUI({
 // ── Sub-Components ────────────────────────────────────────────────────────────
 
 function KpiCard({
-  icon, iconStyle, badge, badgeStyle, value, label, sub, WatermarkIcon, cardStyle,
+  icon, iconStyle, badge, badgeStyle, value, label, sub, WatermarkIcon, cardStyle, href
 }: {
   icon: React.ReactNode;
   iconStyle?: React.CSSProperties;
@@ -689,9 +695,10 @@ function KpiCard({
   sub?: string;
   WatermarkIcon: React.ComponentType<{ size?: number; className?: string }>;
   cardStyle?: React.CSSProperties;
+  href?: string;
 }) {
-  return (
-    <div className={`glass-card ${styles.kpiCardWrapper}`} style={cardStyle}>
+  const content = (
+    <div className={`glass-card ${styles.kpiCardWrapper}`} style={{ ...cardStyle, cursor: href ? 'pointer' : 'default', transition: 'all 0.2s', height: '100%' }}>
       <WatermarkIcon size={128} className={styles.watermarkIcon} />
       <div className={styles.kpiHeader}>
         <div className={styles.kpiIcon} style={iconStyle}>{icon}</div>
@@ -704,6 +711,11 @@ function KpiCard({
       {sub && <div className={styles.kpiSubLabel}>{sub}</div>}
     </div>
   );
+
+  if (href) {
+    return <Link href={href} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>{content}</Link>;
+  }
+  return content;
 }
 
 function EfficiencyBar({
