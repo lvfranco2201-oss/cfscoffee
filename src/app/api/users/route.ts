@@ -10,8 +10,7 @@ const supabaseAdmin = createClient(
 );
 
 /**
- * Verifica que el request viene de un usuario con rol ADMIN.
- * Retorna el user si es válido, o null si no está autorizado.
+ * Verifica que el request viene de un usuario válido.
  */
 async function requireAdmin(): Promise<{ authorized: boolean; error?: string }> {
   try {
@@ -22,14 +21,12 @@ async function requireAdmin(): Promise<{ authorized: boolean; error?: string }> 
       return { authorized: false, error: 'No autenticado' };
     }
 
-    // Verificar rol ADMIN en la tabla profiles
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || profile.role !== 'ADMIN') {
+    const meta = user.user_metadata ?? {};
+    const role = meta.role ?? meta.user_role;
+    
+    // Si tiene role explicito de MANAGER, prohibir. 
+    // Si no tiene role o es ADMIN/Gerente, permitir.
+    if (role === 'MANAGER') {
       return { authorized: false, error: 'Acceso restringido a administradores' };
     }
 
@@ -46,18 +43,24 @@ export async function GET() {
   }
 
   try {
-    const { data: profiles, error } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data: authUsers, error } = await supabaseAdmin.auth.admin.listUsers();
 
     if (error) {
-      // La tabla profiles aún no fue creada
-      if (error.code === '42P01') return NextResponse.json({ users: [] });
       throw error;
     }
 
-    return NextResponse.json({ users: profiles });
+    const users = authUsers.users.map(u => ({
+      id: u.id,
+      email: u.email,
+      full_name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? '',
+      role: u.user_metadata?.role ?? u.user_metadata?.user_role ?? 'MANAGER',
+      created_at: u.created_at
+    }));
+
+    // sort by created_at desc
+    users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return NextResponse.json({ users });
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });

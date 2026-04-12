@@ -54,16 +54,18 @@ export default function Sidebar() {
 
       // Prefer display name from metadata, fall back to email username
       const meta = user.user_metadata ?? {};
-      const name =
+      const rawName =
         meta.full_name ??
         meta.name ??
         user.email?.split('@')[0] ??
         'Admin';
+      
+      const firstName = String(rawName).trim().split(' ')[0];
 
       // Role from metadata if set, otherwise default
       const role = meta.role ?? meta.user_role ?? 'Gerente General';
 
-      setUserName(String(name));
+      setUserName(firstName);
       setUserRole(String(role));
     }
     loadUser();
@@ -153,12 +155,10 @@ export default function Sidebar() {
           {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
         </button>
 
-
-        <Link href="/settings" className={styles.navItem}>
+        {/* <Link href="/settings" className={styles.navItem}>
           <Settings size={20} />
           <span>Configuración</span>
-        </Link>
-
+        </Link> */}
         <div className={styles.userProfile} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div className={styles.avatar}>

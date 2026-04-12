@@ -205,7 +205,7 @@ export default function DashboardUI({
 
         {/* Right: Live indicator + theme toggle */}
         <div className={styles.headerActions} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 2, display: 'flex', gap: '12px' }}>
-          <TopFilters />
+          <TopFilters availableStores={storesData.map(s => ({ id: s.storeName, name: cleanStoreName(s.storeName) }))} />
           {/* Live badge */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '7px',
