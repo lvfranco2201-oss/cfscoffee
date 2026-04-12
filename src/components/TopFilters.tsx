@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Store, ChevronDown, Check } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface TopFiltersProps {
   onDateChange?: (range: string) => void;
@@ -92,6 +93,8 @@ export default function TopFilters({
   const [store, setStore] = useState(selectedStore);
   const [date, setDate] = useState(selectedDate);
 
+  const { t } = useTranslation();
+
   const handleStore = (v: string) => { setStore(v); onStoreChange(v); }
   const handleDate = (v: string) => { 
     if (v !== 'today') {
@@ -103,12 +106,12 @@ export default function TopFilters({
   }
 
   const storeOptions = [
-    { id: 'all', label: 'Todas las Sucursales' },
+    { id: 'all', label: t('dashboard.all_stores') },
     ...availableStores.map(s => ({ id: s.id, label: s.name }))
   ];
 
   const dateOptions = [
-    { id: 'today', label: 'Cierre Actual' },
+    { id: 'today', label: t('dashboard.current_close') },
     { id: 'yesterday', label: 'Ayer' },
     { id: 'last_7', label: 'Últimos 7 Días' },
     { id: 'last_30', label: 'Últimos 30 Días' },

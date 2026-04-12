@@ -12,6 +12,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { cleanStoreName as _clean, fmt, fmtK as fmtShort } from '@/utils/formatters';
 import TopFilters from './TopFilters';
 
@@ -84,6 +85,7 @@ export default function DashboardUI({
 }: DashboardUIProps) {
 
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const [selectedStore, setSelectedStore] = useState('all');
 
@@ -222,7 +224,7 @@ export default function DashboardUI({
             padding: '7px 14px', color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', fontWeight: 600,
           }}>
             <span style={{ minWidth: 0, minHeight: 0, width: '7px', height: '7px', borderRadius: '50%', background: '#2eca7f', boxShadow: '0 0 8px #2eca7f', display: 'inline-block' }} />
-            {currentStoresData.length} Tiendas Activas
+            {currentStoresData.length} {t('dashboard.active_stores')}
           </div>
         </div>
 
@@ -237,11 +239,11 @@ export default function DashboardUI({
                 fontFamily: 'Outfit', letterSpacing: '-0.03em',
                 textShadow: '0 2px 12px rgba(0,0,0,0.6)',
               }}>
-                Dashboard de Ventas
+                {t('dashboard.title')}
               </h1>
             </div>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem', fontWeight: 400, marginLeft: '14px' }}>
-              CFSCoffee · Último cierre:&nbsp;
+              CFSCoffee · {t('dashboard.last_close')} &nbsp;
               <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'capitalize' }}>{dateFmt}</span>
             </p>
           </div>
@@ -249,9 +251,9 @@ export default function DashboardUI({
           {/* Right: quick summary pills */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {[
-              { label: 'Ventas Netas', value: fmtShort(currentKpis.totalNetSales) },
-              { label: 'Órdenes', value: currentKpis.totalOrders.toLocaleString() },
-              { label: 'Clientes', value: currentKpis.totalGuests.toLocaleString() },
+              { label: t('dashboard.net_sales'), value: fmtShort(currentKpis.totalNetSales) },
+              { label: t('dashboard.orders'), value: currentKpis.totalOrders.toLocaleString() },
+              { label: t('dashboard.customers'), value: currentKpis.totalGuests.toLocaleString() },
             ].map(item => (
               <div key={item.label} style={{
                 background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
@@ -281,7 +283,7 @@ export default function DashboardUI({
           badge="Netas"
           badgeStyle={{ background: 'rgba(221,167,86,0.12)', color: 'var(--cfs-gold)', borderColor: 'rgba(221,167,86,0.25)' }}
           value={fmt(currentKpis.totalNetSales)}
-          label="Ventas Netas"
+          label={t('dashboard.net_sales')}
           sub={`Bruto: ${fmt(currentKpis.totalGrossSales)}`}
           WatermarkIcon={DollarSign}
         />
@@ -294,8 +296,8 @@ export default function DashboardUI({
           badge={`${currentStoresData.length} tiendas`}
           badgeStyle={{}}
           value={currentKpis.totalGuests.toLocaleString()}
-          label="Clientes / Visitas"
-          sub={`Ticket promedio: ${fmt(avgPerGuest)}`}
+          label={t('dashboard.customers')}
+          sub={`${t('dashboard.avg_ticket')} ${fmt(avgPerGuest)}`}
           WatermarkIcon={Users}
         />
 
@@ -305,8 +307,8 @@ export default function DashboardUI({
           icon={<ShoppingCart size={22} />}
           iconStyle={{ background: 'rgba(79,172,254,0.12)', color: 'var(--info)' }}
           value={currentKpis.totalOrders.toLocaleString()}
-          label="Órdenes Cerradas"
-          sub={`Ticket promedio: ${fmt(avgTicket)}`}
+          label={t('dashboard.orders')}
+          sub={`${t('dashboard.avg_ticket')} ${fmt(avgTicket)}`}
           WatermarkIcon={ShoppingCart}
         />
 
@@ -316,8 +318,8 @@ export default function DashboardUI({
           icon={<WalletCards size={22} />}
           iconStyle={{ background: 'rgba(253,251,247,0.08)', color: 'var(--cfs-cream)' }}
           value={fmt(totalTips)}
-          label="Propinas"
-          sub="Gratificaciones del día"
+          label={t('dashboard.tips')}
+          sub={t('dashboard.day_gratuities')}
           WatermarkIcon={WalletCards}
         />
 
@@ -327,7 +329,7 @@ export default function DashboardUI({
           icon={<AlertTriangle size={22} />}
           iconStyle={{ background: 'rgba(239,68,68,0.12)', color: 'var(--danger)' }}
           value={fmt(currentKpis.totalDiscounts)}
-          label="Descuentos & Voids"
+          label={t('dashboard.voids_refunds')}
           sub={`Voids/Refunds: ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
           WatermarkIcon={AlertTriangle}
         />
@@ -344,8 +346,8 @@ export default function DashboardUI({
             borderColor: 'transparent',
           }}
           value={fmt(totalLaborCost)}
-          label="Costos Laborales"
-          sub={`${totalLaborHours.toFixed(1)} horas trabajadas`}
+          label={t('dashboard.labor_costs')}
+          sub={`${totalLaborHours.toFixed(1)} ${t('dashboard.hours_worked')}`}
           cardStyle={{ borderColor: laborPct > 30 ? 'rgba(239,68,68,0.3)' : 'var(--border-color)' }}
           WatermarkIcon={Users}
         />
