@@ -50,11 +50,6 @@ export default function DashboardMap({ storesData, theme = 'dark' }: LocalMapPro
     style.innerHTML = `
       .leaflet-container { background: ${theme === 'dark' ? '#091321' : '#fdfbf7'}; font-family: 'Inter', sans-serif; }
       
-      /* Secret Developer Trick: Invert a highly detailed light map to get a perfect premium Dark Map with full labels */
-      .dark-map-tiles {
-        filter: invert(95%) hue-rotate(180deg) brightness(95%) contrast(100%);
-      }
-
       .leaflet-custom-container {
         /* No Background, Leaflet controls positioning here */
         background: transparent;
@@ -103,15 +98,15 @@ export default function DashboardMap({ storesData, theme = 'dark' }: LocalMapPro
     <div style={{ minWidth: 0, minHeight: 0, height: '100%', width: '100%', borderRadius: '20px', overflow: 'hidden' }}>
       <MapContainer key={`cfs-radar-${theme}`} center={[28.58, -81.3792]} zoom={10.5} zoomControl={true} scrollWheelZoom={true} style={{ minWidth: 0, minHeight: 0, height: '100%', width: '100%', zIndex: 1 }}>
         <TileLayer
-          className={theme === 'dark' ? 'dark-map-tiles' : ''}
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution="&copy; <a href='https://carto.com/'>CARTO Voyager</a>"
+          url={theme === 'dark' 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"}
+          attribution="&copy; <a href='https://carto.com/'>CARTO</a>"
         />
         
         {storesData.filter(s => s.netSales > 0).map((store, idx) => {
-          // Proyección estimada del labor cost basada en el estándar del 21%
-          // Luego lo inyectaremos del backend directamente
-          const estimatedLabor = store.netSales * 0.21;
+          // Use real labor cost if available, falling back to 0
+          const realLaborPct = store.laborCost && store.netSales > 0 ? (store.laborCost / store.netSales) * 100 : 0;
           
           return (
             <Marker key={store.storeName} position={getCoordinate(store.storeName, idx)} icon={createCustomIcon()}>
@@ -127,11 +122,13 @@ export default function DashboardMap({ storesData, theme = 'dark' }: LocalMapPro
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Labor (%):</span>
-                    <strong style={{ color: 'var(--danger)' }}>${estimatedLabor.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}</strong>
+                    <strong style={{ color: realLaborPct > 30 ? 'var(--danger)' : 'var(--success)' }}>
+                      {realLaborPct > 0 ? `${realLaborPct.toFixed(1)}%` : '—'}
+                    </strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Staff/Tickets:</span>
-                    <strong>{store.guests}</strong>
+                    <span style={{ color: 'var(--text-muted)' }}>Tickets:</span>
+                    <strong>{store.orders}</strong>
                   </div>
                 </div>
               </Tooltip>
