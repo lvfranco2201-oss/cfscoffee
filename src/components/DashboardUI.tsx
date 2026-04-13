@@ -69,6 +69,9 @@ interface DashboardUIProps {
   };
   totalTips: number;
   prevTotalTips?: number;
+  totalLaborCost: number;
+  prevTotalLaborCost?: number;
+  totalLaborHours: number;
   storesData: StoreData[];
   peakHours: {
     time: string;
@@ -115,7 +118,7 @@ const WoW = ({ pct, label, inverted }: { pct: number, label?: string, inverted?:
 
 export default function DashboardUI({
   kpis, prevKpis, storesData, lastDateStr, peakHours, paymentMethods,
-  totalTips, prevTotalTips = 0, totalLaborCost, totalLaborHours, avg30,
+  totalTips, prevTotalTips = 0, totalLaborCost, prevTotalLaborCost = 0, totalLaborHours, avg30,
   onRefresh, loading = false,
 }: DashboardUIProps) {
 
@@ -166,6 +169,11 @@ export default function DashboardUI({
   const guestPctChg = prevAvgGuest > 0 ? ((avgPerGuest - prevAvgGuest) / prevAvgGuest * 100) : undefined;
   const discPctChg = prevKpis?.totalDiscounts && prevKpis.totalDiscounts > 0 ? ((currentKpis.totalDiscounts - prevKpis.totalDiscounts) / prevKpis.totalDiscounts * 100) : undefined;
   
+  const wowNetSales = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? ((currentKpis.totalNetSales - prevKpis.totalNetSales) / prevKpis.totalNetSales * 100) : undefined;
+  const wowGuests = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? ((currentKpis.totalGuests - prevKpis.totalGuests) / prevKpis.totalGuests * 100) : undefined;
+  const wowOrders = prevKpis?.totalOrders && prevKpis.totalOrders > 0 ? ((currentKpis.totalOrders - prevKpis.totalOrders) / prevKpis.totalOrders * 100) : undefined;
+  const wowLabor = prevTotalLaborCost > 0 ? ((totalLaborCost - prevTotalLaborCost) / prevTotalLaborCost * 100) : undefined;
+
   const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
   const prevTotalVoids = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
   const voidPctChg = prevTotalVoids > 0 ? ((currTotalVoids - prevTotalVoids) / prevTotalVoids * 100) : undefined;
@@ -344,6 +352,7 @@ export default function DashboardUI({
           label={t('dashboard.net_sales')}
           sub={`${t('dashboard.gross_prefix')} ${fmt(currentKpis.totalGrossSales)}`}
           WatermarkIcon={DollarSign}
+          wow={wowNetSales}
         />
 
         {/* 2. Clientes / Visitas */}
@@ -357,6 +366,7 @@ export default function DashboardUI({
           label={t('dashboard.customers')}
           sub={`${t('dashboard.avg_ticket')} ${fmt(avgPerGuest)}`}
           WatermarkIcon={Users}
+          wow={wowGuests}
         />
 
         {/* 3. Órdenes + Ticket */}
@@ -368,6 +378,7 @@ export default function DashboardUI({
           label={t('dashboard.orders')}
           sub={`${t('dashboard.avg_ticket')} ${fmt(avgTicket)}`}
           WatermarkIcon={ShoppingCart}
+          wow={wowOrders}
         />
 
         {/* 4. Propinas */}
@@ -379,9 +390,10 @@ export default function DashboardUI({
           label={t('dashboard.tips')}
           sub={t('dashboard.day_gratuities')}
           WatermarkIcon={WalletCards}
+          wow={tipPctChg}
         />
 
-        {/* 5. Descuentos y Voids */}
+        {/* 5. Descuentos */}
         <KpiCard
           href="/ventas"
           icon={<AlertTriangle size={22} />}
@@ -390,6 +402,8 @@ export default function DashboardUI({
           label={t('dashboard.discounts')}
           sub={`${t('dashboard.voids_prefix')} ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
           WatermarkIcon={AlertTriangle}
+          wow={discPctChg}
+          wowInverted
         />
 
         {/* 6. Costos Laborales */}
@@ -408,6 +422,8 @@ export default function DashboardUI({
           sub={`${totalLaborHours.toFixed(1)} ${t('dashboard.hours_worked')}`}
           cardStyle={{ borderColor: laborPct > 30 ? 'rgba(239,68,68,0.3)' : 'var(--border-color)' }}
           WatermarkIcon={Users}
+          wow={wowLabor}
+          wowInverted
         />
       </section>
 
@@ -841,7 +857,7 @@ export default function DashboardUI({
 // ── Sub-Components ────────────────────────────────────────────────────────────
 
 function KpiCard({
-  icon, iconStyle, badge, badgeStyle, value, label, sub, WatermarkIcon, cardStyle, href
+  icon, iconStyle, badge, badgeStyle, value, label, sub, WatermarkIcon, cardStyle, href, wow, wowInverted
 }: {
   icon: React.ReactNode;
   iconStyle?: React.CSSProperties;
@@ -853,15 +869,18 @@ function KpiCard({
   WatermarkIcon: React.ComponentType<{ size?: number; className?: string }>;
   cardStyle?: React.CSSProperties;
   href?: string;
+  wow?: number;
+  wowInverted?: boolean;
 }) {
   const content = (
     <div className={`glass-card ${styles.kpiCardWrapper}`} style={{ ...cardStyle, cursor: href ? 'pointer' : 'default', transition: 'all 0.2s', height: '100%' }}>
       <WatermarkIcon size={128} className={styles.watermarkIcon} />
       <div className={styles.kpiHeader}>
         <div className={styles.kpiIcon} style={iconStyle}>{icon}</div>
-        {badge && (
-          <div className={styles.kpiBadge} style={badgeStyle}>{badge}</div>
-        )}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {badge && <div className={styles.kpiBadge} style={badgeStyle}>{badge}</div>}
+          {wow !== undefined && <WoW pct={wow} label="" inverted={wowInverted} />}
+        </div>
       </div>
       <div className={styles.kpiValue}>{value}</div>
       <div className={styles.kpiLabel}>{label}</div>

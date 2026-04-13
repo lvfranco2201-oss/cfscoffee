@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     const prevFrom = subtractDays(fromDate, numDays);
 
     // 2. Parallel queries
-    const [kpisRaw, prevKpisRaw, storesRaw, prevStoresRaw, hourlyRaw, paymentRaw, tipRaw, prevTipRaw, avg30Raw, laborPerStoreRaw] = await Promise.all([
+    const [kpisRaw, prevKpisRaw, storesRaw, prevStoresRaw, hourlyRaw, prevHourlyRaw, paymentRaw, tipRaw, prevTipRaw, avg30Raw, laborPerStoreRaw] = await Promise.all([
 
       // KPIs totales del periodo
       db.select({
@@ -145,6 +145,14 @@ export async function GET(req: NextRequest) {
       .where(sql`${hourlySalesMetrics.businessDate}::date BETWEEN ${fromDate}::date AND ${toDate}::date ${hrStoreSQL}`)
       .groupBy(hourlySalesMetrics.businessHour)
       .orderBy(hourlySalesMetrics.businessHour),
+
+      // Curva horaria agregada prev
+      db.select({
+        laborCost: sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalPay}), 0)`.mapWith(Number),
+      })
+      .from(hourlySalesMetrics)
+      .where(sql`${hourlySalesMetrics.businessDate}::date BETWEEN ${prevFrom}::date AND ${prevTo}::date ${hrStoreSQL}`)
+      .groupBy(hourlySalesMetrics.businessHour),
 
       // Métodos de pago del periodo
       db.select({
@@ -280,6 +288,7 @@ export async function GET(req: NextRequest) {
       totalTips: tipRaw[0]?.total ?? 0,
       prevTotalTips: prevTipRaw[0]?.total ?? 0,
       totalLaborCost,
+      prevTotalLaborCost: prevHourlyRaw.reduce((a, d) => a + (d.laborCost ?? 0), 0),
       totalLaborHours,
       avg30,
     }, {
