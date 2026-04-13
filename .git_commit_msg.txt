@@ -1,1 +1,1 @@
-feat: add average hourly cost calculation and display to dashboard UI  
+refactor: isolate payment methods to exactly represent Net Sales discounting tips  

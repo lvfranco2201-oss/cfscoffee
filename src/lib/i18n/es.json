@@ -59,7 +59,7 @@
     "orders_per_hour": "Órdenes / Hora",
     "customers_per_hour": "Clientes / Hora",
     "payment_methods_title": "Métodos de Pago",
-    "payment_methods_subtitle": "Distribución real de cobros (Netas + Propinas)",
+    "payment_methods_subtitle": "Distribución del ingreso neto",
     "no_payment_data": "Sin datos de pagos para este día.",
     "scorecard_tips": "Propinas",
     "scorecard_per_customer": "$/Cliente",

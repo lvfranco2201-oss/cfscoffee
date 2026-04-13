@@ -226,26 +226,40 @@ export async function GET(req: NextRequest) {
         return { time: `${String(hr).padStart(2,'0')}:00 ${ampm}`, ventas: d.netSales, clientes: d.guests, ordenes: d.orders, labor: d.laborCost };
       });
 
-    // Payment methods
+    // Payment methods (Adjusted strictly to Net Sales)
     let totalCash = 0, totalCard = 0;
     paymentRaw.forEach(p => {
       const type = (p.methodType ?? '').toUpperCase();
       if (type === 'CASH' || type.includes('CASH') || type === 'EFECTIVO') totalCash += p.totalAmount;
       else totalCard += p.totalAmount;
     });
-    const paymentMethods = [
-      { name: 'Tarjeta / Digital', value: totalCard, color: 'var(--cfs-gold)' },
-      { name: 'Efectivo',          value: totalCash, color: 'var(--info)' },
-    ].filter(p => p.value > 0);
 
-    const sumPayments = totalCard + totalCash;
     const netSales = kpisRaw[0]?.totalNetSales ?? 0;
     const totalTips = tipRaw[0]?.total ?? 0;
-    const estimatedExpected = netSales + totalTips;
-    if (estimatedExpected > sumPayments) {
+
+    // Remove tips to isolate Net Sales contribution per payment method
+    let adjustedCard = totalCard;
+    let adjustedCash = totalCash;
+    let remainingTipToRemove = totalTips;
+
+    if (adjustedCard >= remainingTipToRemove) {
+      adjustedCard -= remainingTipToRemove;
+    } else {
+      remainingTipToRemove -= adjustedCard;
+      adjustedCard = 0;
+      adjustedCash = Math.max(0, adjustedCash - remainingTipToRemove);
+    }
+
+    const paymentMethods = [
+      { name: 'Tarjeta / Digital', value: adjustedCard, color: 'var(--cfs-gold)' },
+      { name: 'Efectivo',          value: adjustedCash, color: 'var(--info)' },
+    ].filter(p => p.value > 0);
+
+    const sumAdjustedPayments = adjustedCard + adjustedCash;
+    if (netSales > sumAdjustedPayments) {
       paymentMethods.push({
         name: 'Plataformas / Otros',
-        value: estimatedExpected - sumPayments,
+        value: netSales - sumAdjustedPayments,
         color: '#94A3B8',
       });
     }
