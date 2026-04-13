@@ -590,7 +590,7 @@ export default function DashboardUI({
                         {store.discounts > 0 ? `-${fmt(store.discounts, 0)}` : '—'}
                       </td>
                       <td>
-                        {store.laborCost && store.netSales > 0 ? (
+                        {store.laborCost !== undefined && store.laborCost > 0 && store.netSales > 0 ? (
                           <span style={{ color: (store.laborCost / store.netSales) > 0.3 ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>
                             {((store.laborCost / store.netSales) * 100).toFixed(1)}%
                           </span>

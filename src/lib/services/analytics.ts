@@ -92,17 +92,16 @@ export const getDashboardMetrics = unstable_cache(
           GROUP BY ${vwDailySalesMetrics.businessDate}::date
         ) sub
       `),
-      // Labor Cost per Store (safely collapsing revenue center duplicates by max per hour per store)
-      db.execute(sql`
-        SELECT labor_sub."StoreId" as "storeId", SUM(labor_sub."laborCostHour") as "totalLaborStore"
-        FROM (
-          SELECT ${hourlySalesMetrics.storeId} as "StoreId", ${hourlySalesMetrics.businessHour}, MAX(${hourlySalesMetrics.hourlyJobTotalPay})::float as "laborCostHour"
-          FROM ${hourlySalesMetrics}
-          WHERE ${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date
-          GROUP BY ${hourlySalesMetrics.storeId}, ${hourlySalesMetrics.businessHour}
-        ) labor_sub
-        GROUP BY labor_sub."StoreId"
-      `),
+      // Fetch raw hourly labor per store directly
+      db
+        .select({
+          storeId:      hourlySalesMetrics.storeId,
+          businessHour: hourlySalesMetrics.businessHour,
+          laborHrPay:   sql<number>`MAX(${hourlySalesMetrics.hourlyJobTotalPay})`.mapWith(Number)
+        })
+        .from(hourlySalesMetrics)
+        .where(sql`${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
+        .groupBy(hourlySalesMetrics.storeId, hourlySalesMetrics.businessHour),
     ]);
 
     // Parse 30-day averages
@@ -117,15 +116,20 @@ export const getDashboardMetrics = unstable_cache(
       avgOrders:   Number(avg30Row.avgOrders ?? 0),
     };
 
-    const laborPerStore = toRows(laborPerStoreRaw);
-    if (laborPerStore.length > 0) {
-      console.log("[DEBUG] laborPerStore[0] keys:", Object.keys(laborPerStore[0]));
-      console.log("[DEBUG] laborPerStore[0]:", laborPerStore[0]);
-    }
+    // Parse labor
+    // We get hour by hour max labor per store safely in TS form, now we aggregate it manually.
+    const laborPerStoreRawTyped = laborPerStoreRaw as { storeId: number | null, laborHrPay: number }[];
+    const storeLaborMap = new Map<number, number>();
+    
+    laborPerStoreRawTyped.forEach(row => {
+      if (row.storeId != null) {
+        storeLaborMap.set(row.storeId, (storeLaborMap.get(row.storeId) ?? 0) + (row.laborHrPay ?? 0));
+      }
+    });
+
     topSucursales.forEach(s => {
-      const dbStore = laborPerStore.find(l => String(l.storeId) === String(s.storeId));
-      if (dbStore) {
-        s.laborCost = Number(dbStore.totalLaborStore ?? 0);
+      if (s.storeId != null && storeLaborMap.has(s.storeId)) {
+        s.laborCost = storeLaborMap.get(s.storeId) ?? 0;
       }
     });
 
