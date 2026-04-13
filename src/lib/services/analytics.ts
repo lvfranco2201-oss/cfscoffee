@@ -211,6 +211,6 @@ export const getDashboardMetrics = unstable_cache(
       avg30,
     };
   },
-  ['dashboard-metrics-v3'],
+  ['dashboard-metrics-v4'],
   { revalidate: 300, tags: ['dashboard'] }
 );
