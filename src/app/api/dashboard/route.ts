@@ -245,8 +245,8 @@ export async function GET(req: NextRequest) {
       totalLaborHours,
       avg30,
     }, {
-      // Private: each filter combination is user-specific; cache 5min at browser level only
-      headers: { 'Cache-Control': 'private, max-age=300' },
+      // Private: each filter combination is user-specific; cache 1min at browser level only
+      headers: { 'Cache-Control': 'private, max-age=60' },
     });
 
   } catch (err) {
