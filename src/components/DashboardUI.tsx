@@ -690,8 +690,8 @@ export default function DashboardUI({
           </div>
         </div>
 
-        {/* E) Gráfica bar comparativa de tiendas — col 12 */}
-        <div className={`glass-card ${styles.col12}`}>
+        {/* E) Gráfica bar comparativa de tiendas — col 6 */}
+        <div className={`glass-card ${styles.col6}`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -733,8 +733,8 @@ export default function DashboardUI({
           </div>
         </div>
 
-        {/* F) Mapa — col 12 */}
-        <div className={`glass-card ${styles.col12}`} style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* F) Mapa — col 6 */}
+        <div className={`glass-card ${styles.col6}`} style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
             <div>
               <div className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
