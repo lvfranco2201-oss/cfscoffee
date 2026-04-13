@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     const hrStoreSQL = sid ? sql`AND ${hourlySalesMetrics.storeId} = ${sid}` : sql``;
 
     // 2. Parallel queries
-    const [kpisRaw, storesRaw, hourlyRaw, paymentRaw, tipRaw, avg30Raw] = await Promise.all([
+    const [kpisRaw, storesRaw, hourlyRaw, paymentRaw, tipRaw, avg30Raw, laborPerStoreRaw] = await Promise.all([
 
       // KPIs totales del periodo
       db.select({
@@ -126,13 +126,13 @@ export async function GET(req: NextRequest) {
         totalAmount: sum(paymentData.paymentTotal).mapWith(Number),
       })
       .from(paymentData)
-      .where(sql`TO_DATE(${paymentData.settledDate}, 'YYYYMMDD') BETWEEN ${fromDate}::date AND ${toDate}::date`)
+      .where(sql`${paymentData.settledDate}::text >= REPLACE(${fromDate}, '-', '') AND ${paymentData.settledDate}::text <= REPLACE(${toDate}, '-', '')`)
       .groupBy(paymentData.paymentCardType),
 
       // Tips del periodo
       db.select({ total: sum(paymentData.tipAmount).mapWith(Number) })
         .from(paymentData)
-        .where(sql`TO_DATE(${paymentData.settledDate}, 'YYYYMMDD') BETWEEN ${fromDate}::date AND ${toDate}::date`),
+        .where(sql`${paymentData.settledDate}::text >= REPLACE(${fromDate}, '-', '') AND ${paymentData.settledDate}::text <= REPLACE(${toDate}, '-', '')`),
 
       // Promedio 30d (siempre desde lastDate hacia atrás, para anomalías)
       db.execute(sql`
@@ -152,6 +152,15 @@ export async function GET(req: NextRequest) {
           GROUP BY ${vwDailySalesMetrics.businessDate}::date
         ) sub
       `),
+
+      // Labor per store query
+      db.select({
+          storeId:      hourlySalesMetrics.storeId,
+          laborHrPay:   sql<number>`MAX(${hourlySalesMetrics.hourlyJobTotalPay})`.mapWith(Number)
+        })
+        .from(hourlySalesMetrics)
+        .where(sql`${hourlySalesMetrics.businessDate}::date BETWEEN ${fromDate}::date AND ${toDate}::date ${hrStoreSQL}`)
+        .groupBy(hourlySalesMetrics.storeId, hourlySalesMetrics.businessHour),
     ]);
 
     // ── Post-process ────────────────────────────────────────────────────────
@@ -181,7 +190,7 @@ export async function GET(req: NextRequest) {
     let totalCash = 0, totalCard = 0;
     paymentRaw.forEach(p => {
       const type = (p.methodType ?? '').toUpperCase();
-      if (type === 'CASH' || type.includes('CASH')) totalCash += p.totalAmount;
+      if (type === 'CASH' || type.includes('CASH') || type === 'EFECTIVO') totalCash += p.totalAmount;
       else totalCard += p.totalAmount;
     });
     const paymentMethods = [
@@ -189,10 +198,41 @@ export async function GET(req: NextRequest) {
       { name: 'Efectivo',          value: totalCash, color: 'var(--info)' },
     ].filter(p => p.value > 0);
 
-    const storesPerformance = storesRaw.map(s => ({
-      ...s,
-      storeName: s.storeName ?? 'Desconocida',
-    }));
+    const sumPayments = totalCard + totalCash;
+    const netSales = kpisRaw[0]?.totalNetSales ?? 0;
+    const totalTips = tipRaw[0]?.total ?? 0;
+    const estimatedExpected = netSales + totalTips;
+    if (estimatedExpected > sumPayments) {
+      paymentMethods.push({
+        name: 'Plataformas / Otros',
+        value: estimatedExpected - sumPayments,
+        color: '#94A3B8',
+      });
+    }
+
+    // Labor per store map logic
+    const storeLaborMap = new Map<string, number>();
+    (laborPerStoreRaw as { storeId: number | string | null, laborHrPay: number }[]).forEach(row => {
+      if (row.storeId != null) {
+        const key = String(row.storeId);
+        storeLaborMap.set(key, (storeLaborMap.get(key) ?? 0) + (row.laborHrPay ?? 0));
+      }
+    });
+
+    const storesPerformance = storesRaw.map(s => {
+      const storeRes = {
+        ...s,
+        storeName: s.storeName ?? 'Desconocida',
+        laborCost: 0
+      };
+      if (s.storeId != null) {
+        const key = String(s.storeId);
+        if (storeLaborMap.has(key)) {
+          storeRes.laborCost = storeLaborMap.get(key) ?? 0;
+        }
+      }
+      return storeRes;
+    });
 
     return NextResponse.json({
       lastDate, fromDate, toDate,
