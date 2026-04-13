@@ -158,6 +158,7 @@ export default function DashboardUI({
   const discountPct  = currentKpis.totalGrossSales > 0 ? (currentKpis.totalDiscounts / currentKpis.totalGrossSales) * 100 : 0;
   const voidPct      = currentKpis.totalGrossSales > 0 ? (currentKpis.totalVoids / currentKpis.totalGrossSales) * 100 : 0;
   const salesPerLH   = totalLaborHours > 0 ? currentKpis.totalNetSales / totalLaborHours : 0;
+  const avgHourlyCost = totalLaborHours > 0 ? totalLaborCost / totalLaborHours : 0;
   const totalPayments = paymentMethods.reduce((a, p) => a + p.value, 0);
 
   // Prev Comparisons
@@ -173,6 +174,7 @@ export default function DashboardUI({
   // Prev Comparisons for Eficiencia Operacional
   const prevLaborPct = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? (prevTotalLaborCost / prevKpis.totalNetSales) * 100 : 0;
   const wowLaborPct = prevLaborPct > 0 ? ((laborPct - prevLaborPct) / prevLaborPct * 100) : undefined;
+  const wowLabor = prevTotalLaborCost > 0 ? ((totalLaborCost - prevTotalLaborCost) / prevTotalLaborCost * 100) : undefined;
 
   const prevDiscountPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevKpis.totalDiscounts / prevKpis.totalGrossSales) * 100 : 0;
   const wowDiscountPct = prevDiscountPct > 0 ? ((discountPct - prevDiscountPct) / prevDiscountPct * 100) : undefined;
@@ -428,7 +430,7 @@ export default function DashboardUI({
           }}
           value={fmt(totalLaborCost)}
           label={t('dashboard.labor_costs')}
-          sub={`${totalLaborHours.toFixed(1)} ${t('dashboard.hours_worked')}`}
+          sub={`${totalLaborHours.toFixed(1)} ${t('dashboard.hours_worked')} · ${fmtShort(avgHourlyCost)}/h`}
           cardStyle={{ borderColor: laborPct > 30 ? 'rgba(239,68,68,0.3)' : 'var(--border-color)' }}
           WatermarkIcon={Users}
           wow={wowLabor}
@@ -462,9 +464,9 @@ export default function DashboardUI({
             )}
           </div>
 
-          <div style={{ minWidth: 0, minHeight: 0, width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <ComposedChart data={peakHours} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+          <div style={{ width: '100%', height: '280px', minWidth: 0, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={peakHours} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradSales" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="#DDA756" stopOpacity={0.45} />
@@ -519,7 +521,7 @@ export default function DashboardUI({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {/* Donut */}
-            <div style={{ minWidth: 0, minHeight: 0, width: 140, height: 140, flexShrink: 0 }}>
+            <div style={{ width: '160px', height: '160px', flexShrink: 0, minWidth: 0, minHeight: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -711,9 +713,9 @@ export default function DashboardUI({
             <EfficiencyBar
               label={t('dashboard.discount_pct')}
               value={discountPct}
-              max={20}
-              target={10}
-              color={discountPct > 10 ? 'var(--warning)' : 'var(--success)'}
+              max={5}
+              target={1}
+              color={discountPct > 1 ? 'var(--warning)' : 'var(--success)'}
               format={`${discountPct.toFixed(1)}%`}
               caption={fmt(currentKpis.totalDiscounts)}
               wow={wowDiscountPct}
@@ -749,7 +751,7 @@ export default function DashboardUI({
                 </span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                {totalLaborHours.toFixed(1)} {t('dashboard.total_labor_hours')}
+                {totalLaborHours.toFixed(1)} {t('dashboard.total_labor_hours')} · {t('dashboard.avg_hourly_cost_prefix')} <span style={{ color: 'var(--cfs-gold)', fontWeight: 600 }}>{fmt(avgHourlyCost)}/h</span>
               </div>
               <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '6px', lineHeight: '1.3' }}>
                 {t('dashboard.explanation_sales_per_lh')}
@@ -788,7 +790,7 @@ export default function DashboardUI({
             </div>
           </div>
           <div style={{ minWidth: 0, minHeight: 0, width: '100%', height: Math.max(240, storesData.length * 42), maxHeight: 600, overflowY: 'auto' }}>
-            <ResponsiveContainer width="100%" height={Math.max(240, storesData.length * 42)}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={240}>
               <BarChart
                 data={storesData.map(s => ({ ...s, shortName: cleanStoreName(s.storeName) }))}
                 layout="vertical"

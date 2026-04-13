@@ -1,1 +1,1 @@
-fix: duplicate declaration build error  
+feat: add average hourly cost calculation and display to dashboard UI  
