@@ -59,7 +59,7 @@
     "orders_per_hour": "Orders / Hour",
     "customers_per_hour": "Customers / Hour",
     "payment_methods_title": "Payment Methods",
-    "payment_methods_subtitle": "Revenue distribution",
+    "payment_methods_subtitle": "Actual collection distribution (Net + Tips)",
     "no_payment_data": "No payment data for this day.",
     "scorecard_tips": "Tips",
     "scorecard_per_customer": "$/Customer",

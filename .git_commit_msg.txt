@@ -1,1 +1,1 @@
-feat: eficiency op WOW and explanations  
+fix: subtitle for payment methods explaining tips  
