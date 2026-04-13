@@ -94,14 +94,14 @@ export const getDashboardMetrics = unstable_cache(
       `),
       // Labor Cost per Store (safely collapsing revenue center duplicates by max per hour per store)
       db.execute(sql`
-        SELECT "storeId", SUM("laborCostHour") as "totalLaborStore"
+        SELECT labor_sub."StoreId" as "storeId", SUM(labor_sub."laborCostHour") as "totalLaborStore"
         FROM (
-          SELECT "StoreId" as "storeId", "BusinessHour", MAX("HourlyJobTotalPay") as "laborCostHour"
-          FROM "HourlySalesMetrics"
-          WHERE "BusinessDate"::date = ${lastBusinessDateStr}::date
-          GROUP BY "StoreId", "BusinessHour"
-        ) sub
-        GROUP BY "storeId"
+          SELECT ${hourlySalesMetrics.storeId} as "StoreId", ${hourlySalesMetrics.businessHour}, MAX(${hourlySalesMetrics.hourlyJobTotalPay})::float as "laborCostHour"
+          FROM ${hourlySalesMetrics}
+          WHERE ${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date
+          GROUP BY ${hourlySalesMetrics.storeId}, ${hourlySalesMetrics.businessHour}
+        ) labor_sub
+        GROUP BY labor_sub."StoreId"
       `),
     ]);
 
@@ -118,8 +118,12 @@ export const getDashboardMetrics = unstable_cache(
     };
 
     const laborPerStore = toRows(laborPerStoreRaw);
+    if (laborPerStore.length > 0) {
+      console.log("[DEBUG] laborPerStore[0] keys:", Object.keys(laborPerStore[0]));
+      console.log("[DEBUG] laborPerStore[0]:", laborPerStore[0]);
+    }
     topSucursales.forEach(s => {
-      const dbStore = laborPerStore.find(l => l.storeId === s.storeId);
+      const dbStore = laborPerStore.find(l => String(l.storeId) === String(s.storeId));
       if (dbStore) {
         s.laborCost = Number(dbStore.totalLaborStore ?? 0);
       }

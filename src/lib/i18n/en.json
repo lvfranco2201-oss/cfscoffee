@@ -65,6 +65,7 @@
     "table_orders": "Orders",
     "table_avg_order": "$/Order",
     "table_discounts": "Discounts",
+    "table_labor": "Labor %",
     "table_share": "Share",
     "op_efficiency_title": "Operational Efficiency",
     "op_efficiency_subtitle": "Control indicators",
