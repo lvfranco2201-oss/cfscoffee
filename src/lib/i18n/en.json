@@ -91,6 +91,7 @@
     "ops_radar_title": "Operations Radar",
     "ops_radar_subtitle": "Live map of all CFSCoffee locations",
     "synced_nodes": "Synced Nodes",
+    "date_today": "Today",
     "date_yesterday": "Yesterday",
     "date_last_7": "Last 7 Days",
     "date_last_30": "Last 30 Days",
@@ -98,6 +99,9 @@
     "date_last_month": "Last Month",
     "date_ytd": "YTD",
     "date_custom": "Custom...",
+    "revenue_costs_title": "Revenue vs Costs",
+    "revenue_costs_hourly": "Hourly breakdown for the day",
+    "revenue_costs_daily": "Daily trend for the period",
     "date_olap_alert": "🚧 The OLAP cube engine for historical dates is being deployed. For financial security, only the latest close data is currently loaded (Current Close)."
   },
   "ventas": {

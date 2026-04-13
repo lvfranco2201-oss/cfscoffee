@@ -118,6 +118,8 @@ export default function DashboardPage() {
         totalLaborHours={data.totalLaborHours}
         prevTotalLaborHours={data.prevTotalLaborHours}
         avg30={data.avg30}
+        dailyTrend={data.dailyTrend}
+        numDays={data.numDays}
         onRefresh={() => fetchData()}
         loading={loading}
       />

@@ -91,6 +91,7 @@
     "ops_radar_title": "Radar de Operaciones",
     "ops_radar_subtitle": "Mapa en vivo de todas las sucursales CFSCoffee",
     "synced_nodes": "Nodos Sincronizados",
+    "date_today": "Hoy",
     "date_yesterday": "Ayer",
     "date_last_7": "Últimos 7 Días",
     "date_last_30": "Últimos 30 Días",
@@ -98,6 +99,9 @@
     "date_last_month": "Mes Anterior",
     "date_ytd": "YTD",
     "date_custom": "Personalizado...",
+    "revenue_costs_title": "Ingresos vs Costos",
+    "revenue_costs_hourly": "Desglose por hora del día",
+    "revenue_costs_daily": "Tendencia diaria del periodo",
     "date_olap_alert": "🚧 El motor de cubos OLAP para fechas históricas está en fase de despliegue. Por seguridad financiera temporalmente solo se cargan los datos del último cierre (Cierre Actual)."
   },
   "ventas": {
