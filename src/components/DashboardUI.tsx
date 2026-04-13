@@ -387,7 +387,7 @@ export default function DashboardUI({
           icon={<AlertTriangle size={22} />}
           iconStyle={{ background: 'rgba(239,68,68,0.12)', color: 'var(--danger)' }}
           value={fmt(currentKpis.totalDiscounts)}
-          label={t('dashboard.voids_refunds')}
+          label={t('dashboard.discounts')}
           sub={`${t('dashboard.voids_prefix')} ${fmt(currentKpis.totalVoids + currentKpis.totalRefunds)}`}
           WatermarkIcon={AlertTriangle}
         />
