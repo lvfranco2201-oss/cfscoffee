@@ -116,6 +116,7 @@ export default function DashboardPage() {
         totalLaborCost={data.totalLaborCost}
         prevTotalLaborCost={data.prevTotalLaborCost}
         totalLaborHours={data.totalLaborHours}
+        prevTotalLaborHours={data.prevTotalLaborHours}
         avg30={data.avg30}
         onRefresh={() => fetchData()}
         loading={loading}

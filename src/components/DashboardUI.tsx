@@ -48,7 +48,9 @@ interface DashboardUIProps {
   lastDateStr: string;
   totalTips: number;
   totalLaborCost: number;
+  prevTotalLaborCost?: number;
   totalLaborHours: number;
+  prevTotalLaborHours?: number;
   kpis: {
     totalNetSales: number;
     totalGrossSales: number;
@@ -67,11 +69,6 @@ interface DashboardUIProps {
     totalVoids: number;
     totalRefunds: number;
   };
-  totalTips: number;
-  prevTotalTips?: number;
-  totalLaborCost: number;
-  prevTotalLaborCost?: number;
-  totalLaborHours: number;
   storesData: StoreData[];
   peakHours: {
     time: string;
@@ -118,7 +115,7 @@ const WoW = ({ pct, label, inverted }: { pct: number, label?: string, inverted?:
 
 export default function DashboardUI({
   kpis, prevKpis, storesData, lastDateStr, peakHours, paymentMethods,
-  totalTips, prevTotalTips = 0, totalLaborCost, prevTotalLaborCost = 0, totalLaborHours, avg30,
+  totalTips, prevTotalTips = 0, totalLaborCost, prevTotalLaborCost = 0, totalLaborHours, prevTotalLaborHours = 0, avg30,
   onRefresh, loading = false,
 }: DashboardUIProps) {
 
@@ -165,15 +162,26 @@ export default function DashboardUI({
 
   // Prev Comparisons
   const prevAvgGuest = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? prevKpis.totalNetSales / prevKpis.totalGuests : 0;
-  const tipPctChg = prevTotalTips > 0 ? ((totalTips - prevTotalTips) / prevTotalTips * 100) : undefined;
-  const guestPctChg = prevAvgGuest > 0 ? ((avgPerGuest - prevAvgGuest) / prevAvgGuest * 100) : undefined;
-  const discPctChg = prevKpis?.totalDiscounts && prevKpis.totalDiscounts > 0 ? ((currentKpis.totalDiscounts - prevKpis.totalDiscounts) / prevKpis.totalDiscounts * 100) : undefined;
+  
+  const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
+  const prevTotalVoidsOp = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
+
+  // Prev Comparisons for Eficiencia Operacional
+  const prevLaborPct = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? (prevTotalLaborCost / prevKpis.totalNetSales) * 100 : 0;
+  const wowLaborPct = prevLaborPct > 0 ? ((laborPct - prevLaborPct) / prevLaborPct * 100) : undefined;
+
+  const prevDiscountPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevKpis.totalDiscounts / prevKpis.totalGrossSales) * 100 : 0;
+  const wowDiscountPct = prevDiscountPct > 0 ? ((discountPct - prevDiscountPct) / prevDiscountPct * 100) : undefined;
+
+  const prevVoidPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevTotalVoidsOp / prevKpis.totalGrossSales) * 100 : 0;
+  const wowVoidPct = prevVoidPct > 0 ? ((voidPct - prevVoidPct) / prevVoidPct * 100) : undefined;
+
+  const prevSalesPerLH = prevTotalLaborHours > 0 ? (prevKpis?.totalNetSales ?? 0) / prevTotalLaborHours : 0;
+  const wowSalesPerLH = prevSalesPerLH > 0 ? ((salesPerLH - prevSalesPerLH) / prevSalesPerLH * 100) : undefined;
   
   const wowNetSales = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? ((currentKpis.totalNetSales - prevKpis.totalNetSales) / prevKpis.totalNetSales * 100) : undefined;
   const wowGuests = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? ((currentKpis.totalGuests - prevKpis.totalGuests) / prevKpis.totalGuests * 100) : undefined;
   const wowOrders = prevKpis?.totalOrders && prevKpis.totalOrders > 0 ? ((currentKpis.totalOrders - prevKpis.totalOrders) / prevKpis.totalOrders * 100) : undefined;
-  const wowLabor = prevTotalLaborCost > 0 ? ((totalLaborCost - prevTotalLaborCost) / prevTotalLaborCost * 100) : undefined;
-
   const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
   const prevTotalVoids = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
   const voidPctChg = prevTotalVoids > 0 ? ((currTotalVoids - prevTotalVoids) / prevTotalVoids * 100) : undefined;
@@ -684,7 +692,7 @@ export default function DashboardUI({
           </div>
           <div className={styles.cardSubtitle} style={{ marginBottom: '1.4rem' }}>{t('dashboard.op_efficiency_subtitle')}</div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
             <EfficiencyBar
               label="Labor Cost %"
@@ -694,6 +702,9 @@ export default function DashboardUI({
               color={laborPct > 30 ? 'var(--danger)' : 'var(--success)'}
               format={`${laborPct.toFixed(1)}%`}
               caption={`${fmt(totalLaborCost)} · ${totalLaborHours.toFixed(0)}h`}
+              wow={wowLaborPct}
+              wowInverted
+              explanation={t('dashboard.explanation_labor_cost')}
             />
 
             <EfficiencyBar
@@ -704,6 +715,9 @@ export default function DashboardUI({
               color={discountPct > 10 ? 'var(--warning)' : 'var(--success)'}
               format={`${discountPct.toFixed(1)}%`}
               caption={fmt(currentKpis.totalDiscounts)}
+              wow={wowDiscountPct}
+              wowInverted
+              explanation={t('dashboard.explanation_discount_pct')}
             />
 
             <EfficiencyBar
@@ -714,23 +728,30 @@ export default function DashboardUI({
               color={voidPct > 2 ? 'var(--danger)' : 'var(--success)'}
               format={`${voidPct.toFixed(2)}%`}
               caption={`${fmt(currentKpis.totalVoids ?? 0)} ${t('dashboard.void_caption_suffix')}`}
+              wow={wowVoidPct}
+              wowInverted
+              explanation={t('dashboard.explanation_voids_pct')}
             />
 
             {/* Sales Per Labor Hour */}
-            <div style={{ marginTop: '0.5rem', padding: '1rem', background: 'rgba(255,255,255,0.025)', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
+            <div style={{ marginTop: '0.2rem', padding: '1rem', background: 'rgba(255,255,255,0.025)', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={13} style={{ color: 'var(--cfs-gold)' }} />
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {t('dashboard.sales_per_labor_hour')}
                   </span>
+                  {wowSalesPerLH !== undefined && <WoW pct={wowSalesPerLH} />}
                 </div>
-                <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: 'var(--cfs-gold)' }}>
+                <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.2rem', color: 'var(--cfs-gold)' }}>
                   {fmtShort(salesPerLH)}
                 </span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 {totalLaborHours.toFixed(1)} {t('dashboard.total_labor_hours')}
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '6px', lineHeight: '1.3' }}>
+                {t('dashboard.explanation_sales_per_lh')}
               </div>
             </div>
 
@@ -895,10 +916,11 @@ function KpiCard({
 }
 
 function EfficiencyBar({
-  label, value, max, target, color, format, caption,
+  label, value, max, target, color, format, caption, wow, wowInverted, explanation
 }: {
   label: string; value: number; max: number; target: number;
   color: string; format: string; caption?: string;
+  wow?: number; wowInverted?: boolean; explanation?: string;
 }) {
   const pct = Math.min((value / max) * 100, 100);
   const targetPct = Math.min((target / max) * 100, 100);
@@ -906,9 +928,12 @@ function EfficiencyBar({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {label}
+          </span>
+          {wow !== undefined && <WoW pct={wow} inverted={wowInverted} />}
+        </div>
         <span style={{ fontFamily: 'Outfit', fontWeight: 800, color, fontSize: '1rem' }}>{format}</span>
       </div>
       <div style={{ minWidth: 0, minHeight: 0, position: 'relative', height: '6px', background: 'rgba(255,255,255,0.07)', borderRadius: '10px', overflow: 'visible' }}>
@@ -924,6 +949,11 @@ function EfficiencyBar({
         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
           <AlertTriangle size={10} style={{ display: 'inline', marginRight: 3, opacity: value > target ? 1 : 0 }} />
           {caption}
+        </div>
+      )}
+      {explanation && (
+        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px', lineHeight: '1.3' }}>
+          {explanation}
         </div>
       )}
     </div>

@@ -149,6 +149,7 @@ export async function GET(req: NextRequest) {
       // Curva horaria agregada prev
       db.select({
         laborCost: sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalPay}), 0)`.mapWith(Number),
+        laborHrs:  sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalHours}), 0)`.mapWith(Number),
       })
       .from(hourlySalesMetrics)
       .where(sql`${hourlySalesMetrics.businessDate}::date BETWEEN ${prevFrom}::date AND ${prevTo}::date ${hrStoreSQL}`)
@@ -290,6 +291,7 @@ export async function GET(req: NextRequest) {
       totalLaborCost,
       prevTotalLaborCost: prevHourlyRaw.reduce((a, d) => a + (d.laborCost ?? 0), 0),
       totalLaborHours,
+      prevTotalLaborHours: prevHourlyRaw.reduce((a, d) => a + (d.laborHrs ?? 0), 0),
       avg30,
     }, {
       // Private: each filter combination is user-specific; cache 1min at browser level only
