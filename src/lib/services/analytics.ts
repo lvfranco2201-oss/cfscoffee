@@ -118,18 +118,22 @@ export const getDashboardMetrics = unstable_cache(
 
     // Parse labor
     // We get hour by hour max labor per store safely in TS form, now we aggregate it manually.
-    const laborPerStoreRawTyped = laborPerStoreRaw as { storeId: number | null, laborHrPay: number }[];
-    const storeLaborMap = new Map<number, number>();
+    const laborPerStoreRawTyped = laborPerStoreRaw as { storeId: number | string | null, laborHrPay: number }[];
+    const storeLaborMap = new Map<string, number>();
     
     laborPerStoreRawTyped.forEach(row => {
       if (row.storeId != null) {
-        storeLaborMap.set(row.storeId, (storeLaborMap.get(row.storeId) ?? 0) + (row.laborHrPay ?? 0));
+        const key = String(row.storeId);
+        storeLaborMap.set(key, (storeLaborMap.get(key) ?? 0) + (row.laborHrPay ?? 0));
       }
     });
 
     topSucursales.forEach(s => {
-      if (s.storeId != null && storeLaborMap.has(s.storeId)) {
-        s.laborCost = storeLaborMap.get(s.storeId) ?? 0;
+      if (s.storeId != null) {
+        const key = String(s.storeId);
+        if (storeLaborMap.has(key)) {
+          s.laborCost = storeLaborMap.get(key) ?? 0;
+        }
       }
     });
 
@@ -211,6 +215,6 @@ export const getDashboardMetrics = unstable_cache(
       avg30,
     };
   },
-  ['dashboard-metrics-v4'],
+  ['dashboard-metrics-v5'],
   { revalidate: 300, tags: ['dashboard'] }
 );
