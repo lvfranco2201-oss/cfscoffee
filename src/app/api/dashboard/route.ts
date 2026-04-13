@@ -73,8 +73,12 @@ export async function GET(req: NextRequest) {
     const storeSQL = sid ? sql`AND ${vwDailySalesMetrics.storeId} = ${sid}` : sql``;
     const hrStoreSQL = sid ? sql`AND ${hourlySalesMetrics.storeId} = ${sid}` : sql``;
 
+    const numDays = Math.max(Math.round((new Date(toDate + 'T12:00:00').getTime() - new Date(fromDate + 'T12:00:00').getTime()) / 86400000), 0) + 1;
+    const prevTo = subtractDays(fromDate, 1);
+    const prevFrom = subtractDays(fromDate, numDays);
+
     // 2. Parallel queries
-    const [kpisRaw, storesRaw, hourlyRaw, paymentRaw, tipRaw, avg30Raw, laborPerStoreRaw] = await Promise.all([
+    const [kpisRaw, prevKpisRaw, storesRaw, prevStoresRaw, hourlyRaw, paymentRaw, tipRaw, prevTipRaw, avg30Raw, laborPerStoreRaw] = await Promise.all([
 
       // KPIs totales del periodo
       db.select({
@@ -88,6 +92,19 @@ export async function GET(req: NextRequest) {
       })
       .from(vwDailySalesMetrics)
       .where(sql`${vwDailySalesMetrics.businessDate}::date BETWEEN ${fromDate}::date AND ${toDate}::date ${storeSQL}`),
+
+      // KPIs previos
+      db.select({
+        totalNetSales:   sum(vwDailySalesMetrics.totalNetSales).mapWith(Number),
+        totalGrossSales: sum(vwDailySalesMetrics.totalGrossSales).mapWith(Number),
+        totalGuests:     sum(vwDailySalesMetrics.totalGuests).mapWith(Number),
+        totalOrders:     sum(vwDailySalesMetrics.totalOrders).mapWith(Number),
+        totalDiscounts:  sum(vwDailySalesMetrics.totalDiscounts).mapWith(Number),
+        totalVoids:      sum(vwDailySalesMetrics.totalVoids).mapWith(Number),
+        totalRefunds:    sum(vwDailySalesMetrics.totalRefunds).mapWith(Number),
+      })
+      .from(vwDailySalesMetrics)
+      .where(sql`${vwDailySalesMetrics.businessDate}::date BETWEEN ${prevFrom}::date AND ${prevTo}::date ${storeSQL}`),
 
       // Desglose por sucursal
       db.select({
@@ -105,6 +122,15 @@ export async function GET(req: NextRequest) {
       .where(sql`${vwDailySalesMetrics.businessDate}::date BETWEEN ${fromDate}::date AND ${toDate}::date ${storeSQL}`)
       .groupBy(vwDailySalesMetrics.storeId, vwDailySalesMetrics.storeName)
       .orderBy(desc(sum(vwDailySalesMetrics.totalNetSales))),
+
+      // Desglose por sucursal previo
+      db.select({
+        storeId:    vwDailySalesMetrics.storeId,
+        netSales:   sum(vwDailySalesMetrics.totalNetSales).mapWith(Number),
+      })
+      .from(vwDailySalesMetrics)
+      .where(sql`${vwDailySalesMetrics.businessDate}::date BETWEEN ${prevFrom}::date AND ${prevTo}::date ${storeSQL}`)
+      .groupBy(vwDailySalesMetrics.storeId),
 
       // Curva horaria agregada
       db.select({
@@ -133,6 +159,11 @@ export async function GET(req: NextRequest) {
       db.select({ total: sum(paymentData.tipAmount).mapWith(Number) })
         .from(paymentData)
         .where(sql`${paymentData.settledDate}::text >= REPLACE(${fromDate}, '-', '') AND ${paymentData.settledDate}::text <= REPLACE(${toDate}, '-', '')`),
+
+      // Tips prev
+      db.select({ total: sum(paymentData.tipAmount).mapWith(Number) })
+        .from(paymentData)
+        .where(sql`${paymentData.settledDate}::text >= REPLACE(${prevFrom}, '-', '') AND ${paymentData.settledDate}::text <= REPLACE(${prevTo}, '-', '')`),
 
       // Promedio 30d (siempre desde lastDate hacia atrás, para anomalías)
       db.execute(sql`
@@ -223,12 +254,17 @@ export async function GET(req: NextRequest) {
       const storeRes = {
         ...s,
         storeName: s.storeName ?? 'Desconocida',
-        laborCost: 0
+        laborCost: 0,
+        prevNetSales: 0
       };
       if (s.storeId != null) {
         const key = String(s.storeId);
         if (storeLaborMap.has(key)) {
           storeRes.laborCost = storeLaborMap.get(key) ?? 0;
+        }
+        const prevData = prevStoresRaw.find(ps => ps.storeId === s.storeId);
+        if (prevData) {
+          storeRes.prevNetSales = prevData.netSales;
         }
       }
       return storeRes;
@@ -237,10 +273,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       lastDate, fromDate, toDate,
       kpis: kpisRaw[0] ?? null,
+      prevKpis: prevKpisRaw[0] ?? null,
       storesPerformance,
       peakHours,
       paymentMethods,
       totalTips: tipRaw[0]?.total ?? 0,
+      prevTotalTips: prevTipRaw[0]?.total ?? 0,
       totalLaborCost,
       totalLaborHours,
       avg30,

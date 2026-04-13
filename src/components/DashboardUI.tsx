@@ -1,10 +1,10 @@
 'use client';
 import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend, ComposedChart, Line
+  ResponsiveContainer, PieChart, Pie, Cell, Legend, ComposedChart, Line, LabelList
 } from 'recharts';
 import {
-  TrendingUp, Users, DollarSign, WalletCards,
+  TrendingUp, TrendingDown, Users, DollarSign, WalletCards,
   ShoppingCart, AlertTriangle, Percent, Clock, Activity, BarChart2
 } from 'lucide-react';
 import styles from '../app/Dashboard.module.css';
@@ -34,6 +34,7 @@ interface StoreData {
   storeId?: number | null;   // numeric ID from API — used for context-based filtering
   storeName: string;
   netSales: number;
+  prevNetSales?: number;
   grossSales: number;
   guests: number;
   orders: number;
@@ -57,6 +58,17 @@ interface DashboardUIProps {
     totalVoids: number;
     totalRefunds: number;
   };
+  prevKpis?: {
+    totalNetSales: number;
+    totalGrossSales: number;
+    totalGuests: number;
+    totalOrders: number;
+    totalDiscounts: number;
+    totalVoids: number;
+    totalRefunds: number;
+  };
+  totalTips: number;
+  prevTotalTips?: number;
   storesData: StoreData[];
   peakHours: {
     time: string;
@@ -81,14 +93,29 @@ interface DashboardUIProps {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-// Re-export from shared utils so existing JSX references keep working
 const cleanStoreName = (val: string) => _clean(val);
+
+const WoW = ({ pct, label, inverted }: { pct: number, label?: string, inverted?: boolean }) => {
+  const sign = pct >= 0;
+  const isGood = inverted ? !sign : sign;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '3px',
+      fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '20px',
+      background: isGood ? 'rgba(46,202,127,0.12)' : 'rgba(239,68,68,0.12)',
+      color: isGood ? 'var(--success)' : 'var(--danger)',
+    }}>
+      {sign ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+      {sign ? '+' : ''}{pct.toFixed(1)}% {label || ''}
+    </span>
+  );
+};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function DashboardUI({
-  kpis, storesData, lastDateStr, peakHours, paymentMethods,
-  totalTips, totalLaborCost, totalLaborHours, avg30,
+  kpis, prevKpis, storesData, lastDateStr, peakHours, paymentMethods,
+  totalTips, prevTotalTips = 0, totalLaborCost, totalLaborHours, avg30,
   onRefresh, loading = false,
 }: DashboardUIProps) {
 
@@ -124,7 +151,6 @@ export default function DashboardUI({
     };
   }, [kpis, currentStoresData, selectedStore]);
 
-  // ── Derived KPIs ──────────────────────────────────────────────────────────
   const avgTicket    = currentKpis.totalOrders  > 0 ? currentKpis.totalNetSales / currentKpis.totalOrders : 0;
   const avgPerGuest  = currentKpis.totalGuests  > 0 ? currentKpis.totalNetSales / currentKpis.totalGuests : 0;
   // labor costs and tips are total since we lack branch breakout in view currently
@@ -133,6 +159,16 @@ export default function DashboardUI({
   const voidPct      = currentKpis.totalGrossSales > 0 ? (currentKpis.totalVoids / currentKpis.totalGrossSales) * 100 : 0;
   const salesPerLH   = totalLaborHours > 0 ? currentKpis.totalNetSales / totalLaborHours : 0;
   const totalPayments = paymentMethods.reduce((a, p) => a + p.value, 0);
+
+  // Prev Comparisons
+  const prevAvgGuest = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? prevKpis.totalNetSales / prevKpis.totalGuests : 0;
+  const tipPctChg = prevTotalTips > 0 ? ((totalTips - prevTotalTips) / prevTotalTips * 100) : undefined;
+  const guestPctChg = prevAvgGuest > 0 ? ((avgPerGuest - prevAvgGuest) / prevAvgGuest * 100) : undefined;
+  const discPctChg = prevKpis?.totalDiscounts && prevKpis.totalDiscounts > 0 ? ((currentKpis.totalDiscounts - prevKpis.totalDiscounts) / prevKpis.totalDiscounts * 100) : undefined;
+  
+  const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
+  const prevTotalVoids = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
+  const voidPctChg = prevTotalVoids > 0 ? ((currTotalVoids - prevTotalVoids) / prevTotalVoids * 100) : undefined;
 
   // ── Best hour ────────────────────────────────────────────────────────────
   const bestHour = useMemo(() => {
@@ -501,26 +537,38 @@ export default function DashboardUI({
           {/* Propinas + Scorecards */}
           <div className={styles.scorecardGrid} style={{ marginTop: '1.2rem' }}>
             <div className={styles.scorecardItem}>
-              <div className={styles.scorecardValue} style={{ color: 'var(--cfs-gold)', fontSize: '1.35rem' }}>
-                {fmt(totalTips)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className={styles.scorecardValue} style={{ color: 'var(--cfs-gold)', fontSize: '1.35rem' }}>
+                  {fmt(totalTips)}
+                </div>
+                {tipPctChg !== undefined && <WoW pct={tipPctChg} />}
               </div>
               <div className={styles.scorecardLabel}>{t('dashboard.scorecard_tips')}</div>
             </div>
             <div className={styles.scorecardItem}>
-              <div className={styles.scorecardValue} style={{ fontSize: '1.35rem' }}>
-                {fmt(avgPerGuest)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className={styles.scorecardValue} style={{ fontSize: '1.35rem' }}>
+                  {fmt(avgPerGuest)}
+                </div>
+                {guestPctChg !== undefined && <WoW pct={guestPctChg} />}
               </div>
               <div className={styles.scorecardLabel}>{t('dashboard.scorecard_per_customer')}</div>
             </div>
             <div className={styles.scorecardItem}>
-              <div className={styles.scorecardValue} style={{ color: kpis.totalDiscounts > 0 ? 'var(--warning)' : 'var(--text-main)', fontSize: '1.35rem' }}>
-                {fmt(kpis.totalDiscounts)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className={styles.scorecardValue} style={{ color: currentKpis.totalDiscounts > 0 ? 'var(--warning)' : 'var(--text-main)', fontSize: '1.35rem' }}>
+                  {fmt(currentKpis.totalDiscounts)}
+                </div>
+                {discPctChg !== undefined && <WoW pct={discPctChg} inverted />}
               </div>
               <div className={styles.scorecardLabel}>{t('dashboard.scorecard_discounts')} ({discountPct.toFixed(1)}%)</div>
             </div>
             <div className={styles.scorecardItem}>
-              <div className={styles.scorecardValue} style={{ color: kpis.totalVoids > 0 ? 'var(--danger)' : 'var(--text-main)', fontSize: '1.35rem' }}>
-                {fmt((kpis.totalVoids ?? 0) + (kpis.totalRefunds ?? 0))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className={styles.scorecardValue} style={{ color: currTotalVoids > 0 ? 'var(--danger)' : 'var(--text-main)', fontSize: '1.35rem' }}>
+                  {fmt(currTotalVoids)}
+                </div>
+                {voidPctChg !== undefined && <WoW pct={voidPctChg} inverted />}
               </div>
               <div className={styles.scorecardLabel}>{t('dashboard.scorecard_voids')}</div>
             </div>
@@ -706,7 +754,7 @@ export default function DashboardUI({
               <BarChart
                 data={storesData.map(s => ({ ...s, shortName: cleanStoreName(s.storeName) }))}
                 layout="vertical"
-                margin={{ top: 0, right: 90, left: 12, bottom: 0 }}
+                margin={{ top: 0, right: 110, left: 12, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
                 <XAxis type="number" tickFormatter={v => `$${v}`} stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
@@ -727,6 +775,39 @@ export default function DashboardUI({
                       fill={i === 0 ? '#DDA756' : i === 1 ? '#b89040' : 'rgba(221,167,86,0.5)'}
                     />
                   ))}
+                  <LabelList
+                    dataKey="netSales"
+                    position="right"
+                    content={(props: any) => {
+                      const { x, y, width, height, value, index } = props;
+                      const payload = storesData[index];
+                      const prevVal = payload?.prevNetSales || 0;
+                      const diff = prevVal > 0 ? ((value - prevVal) / prevVal * 100) : 0;
+                      const sign = diff >= 0;
+                      const fill = sign ? 'var(--success)' : 'var(--danger)';
+                      const diffStr = prevVal > 0 ? `${sign ? '+' : ''}${diff.toFixed(1)}%` : '';
+
+                      // Avoid rendering labels if the bar has practically zero width or data is missing
+                      if (value == null || value === 0) return null;
+
+                      // Approximate width of text to position % label
+                      const valStr = `$${Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                      const textWidth = valStr.length * 7; 
+
+                      return (
+                        <g>
+                          <text x={x + width + 8} y={y + height / 2 + 4} fill="var(--cfs-cream)" fontSize={12} fontWeight={600} fontFamily="Outfit">
+                            {valStr}
+                          </text>
+                          {diffStr && (
+                            <text x={x + width + 14 + textWidth} y={y + height / 2 + 4} fill={fill} fontSize={11} fontWeight={700}>
+                              {diffStr}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

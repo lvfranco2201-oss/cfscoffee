@@ -112,10 +112,9 @@ export async function getVentasMetricsFiltered(filter: VentasFilter) {
   const hrStoreSQL  = sid ? sql`AND ${hourlySalesMetrics.storeId} = ${sid}`   : sql``;
   const payStoreSQL = sid ? sql`AND ${paymentData.restaurantName} IS NOT NULL` : sql``; // payment table has no storeId
 
-  // ── Calculate comparison period (same length, immediately before fromDate) ──
-  const periodLen = daysBetween(fromDate, toDate);
-  const prevTo   = subtractDays(fromDate, 1);
-  const prevFrom = subtractDays(fromDate, periodLen);
+  const numDays = daysBetween(fromDate, toDate) + 1;
+  const prevTo = subtractDays(fromDate, 1);
+  const prevFrom = subtractDays(fromDate, numDays);
 
   // ── Parallel queries ───────────────────────────────────────────────────────
   const [

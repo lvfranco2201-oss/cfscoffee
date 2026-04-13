@@ -107,10 +107,12 @@ export default function DashboardPage() {
             : (data.fromDate ?? data.lastDate)
         }
         kpis={data.kpis}
+        prevKpis={data.prevKpis}
         storesData={data.storesPerformance}
         peakHours={data.peakHours}
         paymentMethods={data.paymentMethods}
         totalTips={data.totalTips}
+        prevTotalTips={data.prevTotalTips}
         totalLaborCost={data.totalLaborCost}
         totalLaborHours={data.totalLaborHours}
         avg30={data.avg30}

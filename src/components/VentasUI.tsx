@@ -57,17 +57,18 @@ const fmtK = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` :
 
 const PALETTE = ['#DDA756', '#3b82f6', '#2eca7f', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
-const WoW = ({ pct }: { pct: number }) => {
+const WoW = ({ pct, label, inverted }: { pct: number, label?: string, inverted?: boolean }) => {
   const sign = pct >= 0;
+  const isGood = inverted ? !sign : sign;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: '3px',
       fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
-      background: sign ? 'rgba(46,202,127,0.12)' : 'rgba(239,68,68,0.12)',
-      color: sign ? 'var(--success)' : 'var(--danger)',
+      background: isGood ? 'rgba(46,202,127,0.12)' : 'rgba(239,68,68,0.12)',
+      color: isGood ? 'var(--success)' : 'var(--danger)',
     }}>
       {sign ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-      {sign ? '+' : ''}{pct.toFixed(1)}% WoW
+      {sign ? '+' : ''}{pct.toFixed(1)}% {label || ''}
     </span>
   );
 };
@@ -104,6 +105,9 @@ export default function VentasUI({ data }: { data: VentasData }) {
   const avgPerGuest = data.kpisHoy.guests  > 0 ? data.kpisHoy.netSales / data.kpisHoy.guests  : 0;
   const discPct     = data.kpisHoy.grossSales > 0 ? (data.kpisHoy.discounts / data.kpisHoy.grossSales) * 100 : 0;
   const voidPct     = data.kpisHoy.grossSales > 0 ? ((data.kpisHoy.voids + data.kpisHoy.refunds) / data.kpisHoy.grossSales) * 100 : 0;
+
+  const wowOrders = data.prevWeek.orders > 0 ? ((data.kpisHoy.orders - data.prevWeek.orders) / data.prevWeek.orders * 100) : undefined;
+  const wowDiscounts = data.prevWeek.discounts > 0 ? ((data.kpisHoy.discounts - data.prevWeek.discounts) / data.prevWeek.discounts * 100) : undefined;
 
   // Total 90d
   const total90 = useMemo(() => data.trend90.reduce((a, d) => a + d.netSales, 0), [data.trend90]);
@@ -169,8 +173,8 @@ export default function VentasUI({ data }: { data: VentasData }) {
         {[
           { href: null,        icon: <DollarSign size={18}/>,    WM: DollarSign,    col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',        label: t('ventas.kpi_net_sales_today'), val: fmt(data.kpisHoy.netSales),                            sub: `${t('ventas.kpi_gross_prefix')} ${fmt(data.kpisHoy.grossSales)}`,               wow: data.wowSales },
           { href: '/clientes', icon: <Users size={18}/>,          WM: Users,          col: 'var(--success)',  bg: 'rgba(46,202,127,0.12)',      label: t('ventas.kpi_customers_today'), val: data.kpisHoy.guests.toLocaleString(),                   sub: `${t('ventas.kpi_visit_prefix')} ${fmt(avgPerGuest)}`,                           wow: data.wowGuests },
-          { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart,  col: 'var(--info)',     bg: 'rgba(79,172,254,0.12)',      label: t('ventas.kpi_orders_closed'),   val: data.kpisHoy.orders.toLocaleString(),                   sub: `${t('ventas.kpi_ticket_prefix')} ${fmt(avgTicket)}` },
-          { href: null,        icon: <Percent size={18}/>,        WM: Percent,        col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: t('ventas.kpi_discounts'), val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% ${t('ventas.kpi_pct_gross')}` },
+          { href: '/productos', icon: <ShoppingCart size={18}/>, WM: ShoppingCart,  col: 'var(--info)',     bg: 'rgba(79,172,254,0.12)',      label: t('ventas.kpi_orders_closed'),   val: data.kpisHoy.orders.toLocaleString(),                   sub: `${t('ventas.kpi_ticket_prefix')} ${fmt(avgTicket)}`,                            wow: wowOrders },
+          { href: null,        icon: <Percent size={18}/>,        WM: Percent,        col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: t('ventas.kpi_discounts'), val: fmt(data.kpisHoy.discounts), sub: `${discPct.toFixed(1)}% ${t('ventas.kpi_pct_gross')}`, wow: wowDiscounts, wowInverted: true },
           { href: null,        icon: <AlertTriangle size={18}/>,  WM: AlertTriangle,  col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: t('ventas.kpi_voids_refunds'), val: fmt(data.kpisHoy.voids + data.kpisHoy.refunds), sub: `${voidPct.toFixed(2)}% ${t('ventas.kpi_voids_suffix')}` },
           { href: null,        icon: <Award size={18}/>,          WM: Award,          col: 'var(--cfs-gold)',  bg: 'var(--cfs-gold-dim)',       label: t('ventas.kpi_best_day_90'),     val: fmtK(best90),                                           sub: data.topDias[0]?.date ? safeParseDate(data.topDias[0].date).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' }) : '—' },
         ].map((c, i) => {
@@ -181,7 +185,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                 <div style={{ minWidth: 0, minHeight: 0, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg, color: c.col, border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
                   {c.icon}
                 </div>
-                {c.wow !== undefined && <WoW pct={c.wow} />}
+                {c.wow !== undefined && <WoW pct={c.wow} label={t('ventas.vs_prev')} inverted={c.wowInverted} />}
               </div>
               <div style={{ fontFamily: 'Outfit', fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '3px', position: 'relative', zIndex: 1 }}>{c.val}</div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', position: 'relative', zIndex: 1 }}>{c.label}</div>
@@ -210,7 +214,7 @@ export default function VentasUI({ data }: { data: VentasData }) {
                   <div style={{ fontFamily: 'Outfit', fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1, marginBottom: '2px' }}>{card.fmt(card.curr)}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('ventas.week_vs')} {card.fmt(card.prev)} {t('ventas.week_prev')}</div>
                 </div>
-                <WoW pct={card.pct} />
+                <WoW pct={card.pct} label={t('ventas.vs_prev')} inverted={card.label === t('ventas.week_discounts')} />
               </div>
               {/* Progress bar: actual vs anterior */}
               <div style={{ minWidth: 0, minHeight: 0, display: 'flex', gap: '3px', height: '5px', borderRadius: '10px', overflow: 'hidden' }}>
