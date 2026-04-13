@@ -162,9 +162,13 @@ export default function DashboardUI({
 
   // Prev Comparisons
   const prevAvgGuest = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? prevKpis.totalNetSales / prevKpis.totalGuests : 0;
+  const tipPctChg = prevTotalTips > 0 ? ((totalTips - prevTotalTips) / prevTotalTips * 100) : undefined;
+  const guestPctChg = prevAvgGuest > 0 ? ((avgPerGuest - prevAvgGuest) / prevAvgGuest * 100) : undefined;
+  const discPctChg = prevKpis?.totalDiscounts && prevKpis.totalDiscounts > 0 ? ((currentKpis.totalDiscounts - prevKpis.totalDiscounts) / prevKpis.totalDiscounts * 100) : undefined;
   
   const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
-  const prevTotalVoidsOp = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
+  const prevTotalVoids = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
+  const voidPctChg = prevTotalVoids > 0 ? ((currTotalVoids - prevTotalVoids) / prevTotalVoids * 100) : undefined;
 
   // Prev Comparisons for Eficiencia Operacional
   const prevLaborPct = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? (prevTotalLaborCost / prevKpis.totalNetSales) * 100 : 0;
@@ -173,7 +177,7 @@ export default function DashboardUI({
   const prevDiscountPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevKpis.totalDiscounts / prevKpis.totalGrossSales) * 100 : 0;
   const wowDiscountPct = prevDiscountPct > 0 ? ((discountPct - prevDiscountPct) / prevDiscountPct * 100) : undefined;
 
-  const prevVoidPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevTotalVoidsOp / prevKpis.totalGrossSales) * 100 : 0;
+  const prevVoidPct = prevKpis?.totalGrossSales && prevKpis.totalGrossSales > 0 ? (prevTotalVoids / prevKpis.totalGrossSales) * 100 : 0;
   const wowVoidPct = prevVoidPct > 0 ? ((voidPct - prevVoidPct) / prevVoidPct * 100) : undefined;
 
   const prevSalesPerLH = prevTotalLaborHours > 0 ? (prevKpis?.totalNetSales ?? 0) / prevTotalLaborHours : 0;
@@ -182,9 +186,6 @@ export default function DashboardUI({
   const wowNetSales = prevKpis?.totalNetSales && prevKpis.totalNetSales > 0 ? ((currentKpis.totalNetSales - prevKpis.totalNetSales) / prevKpis.totalNetSales * 100) : undefined;
   const wowGuests = prevKpis?.totalGuests && prevKpis.totalGuests > 0 ? ((currentKpis.totalGuests - prevKpis.totalGuests) / prevKpis.totalGuests * 100) : undefined;
   const wowOrders = prevKpis?.totalOrders && prevKpis.totalOrders > 0 ? ((currentKpis.totalOrders - prevKpis.totalOrders) / prevKpis.totalOrders * 100) : undefined;
-  const currTotalVoids = (currentKpis.totalVoids ?? 0) + (currentKpis.totalRefunds ?? 0);
-  const prevTotalVoids = prevKpis ? (prevKpis.totalVoids ?? 0) + (prevKpis.totalRefunds ?? 0) : 0;
-  const voidPctChg = prevTotalVoids > 0 ? ((currTotalVoids - prevTotalVoids) / prevTotalVoids * 100) : undefined;
 
   // ── Best hour ────────────────────────────────────────────────────────────
   const bestHour = useMemo(() => {

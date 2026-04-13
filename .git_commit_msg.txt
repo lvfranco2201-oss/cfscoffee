@@ -1,1 +1,1 @@
-fix: subtitle for payment methods explaining tips  
+fix: duplicate declaration build error  
