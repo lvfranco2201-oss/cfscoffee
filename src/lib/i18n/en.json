@@ -102,6 +102,13 @@
     "revenue_costs_title": "Revenue vs Costs",
     "revenue_costs_hourly": "Hourly breakdown for the day",
     "revenue_costs_daily": "Daily trend for the period",
+    "kpi_gross_profit": "Gross Profit",
+    "best_day_sales": "Best Sales Day",
+    "hours": "hours",
+    "days": "days",
+    "avg_labor_pct": "Avg Labor %",
+    "profit_margin": "Profit Margin",
+    "sales_peak_hour": "Sales/Peak Hour",
     "date_olap_alert": "🚧 The OLAP cube engine for historical dates is being deployed. For financial security, only the latest close data is currently loaded (Current Close)."
   },
   "ventas": {

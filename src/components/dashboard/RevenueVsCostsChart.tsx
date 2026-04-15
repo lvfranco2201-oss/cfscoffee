@@ -152,9 +152,9 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
         {/* Summary pills */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { label: 'Ventas Netas', value: fmtCurrency(totalRevenue), color: COLORS.netSales },
-            { label: 'Costo Laboral', value: fmtCurrency(totalLabor), sub: `${laborPct.toFixed(1)}%`, color: COLORS.labor },
-            { label: 'Utilidad Bruta', value: fmtCurrency(totalProfit), sub: `${profitMargin.toFixed(1)}%`, color: COLORS.profit },
+            { label: t('dashboard.net_sales') || 'Ventas Netas', value: fmtCurrency(totalRevenue), color: COLORS.netSales },
+            { label: t('dashboard.labor_costs') || 'Costo Laboral', value: fmtCurrency(totalLabor), sub: `${laborPct.toFixed(1)}%`, color: COLORS.labor },
+            { label: t('dashboard.kpi_gross_profit') || 'Utilidad Bruta', value: fmtCurrency(totalProfit), sub: `${profitMargin.toFixed(1)}%`, color: COLORS.profit },
           ].map(item => (
             <div key={item.label} style={{
               background: 'rgba(255,255,255,0.03)', borderRadius: '10px',
@@ -178,7 +178,7 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
                 {peakPoint.label}
               </div>
               <div style={{ fontSize: '0.62rem', color: 'var(--cfs-gold)', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                {isHourly ? 'Hora pico' : 'Mejor día'}
+                {isHourly ? (t('dashboard.hourly_peak') || 'Hora pico') : (t('dashboard.best_day_sales') || 'Mejor día')}
               </div>
             </div>
           )}
@@ -264,10 +264,10 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
       {/* Bottom stat row */}
       <div className={styles.statRow} style={{ marginTop: '1rem', marginBottom: 0, paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)' }}>
         {[
-          { label: activeDateLabel,                                           value: isHourly ? `${data.length} horas` : `${numDays} días` },
-          { label: 'Labor % promedio',                                        value: `${laborPct.toFixed(1)}%` },
-          { label: 'Margen utilidad',                                         value: `${profitMargin.toFixed(1)}%` },
-          { label: isHourly ? 'Ventas/hora pico' : 'Mejor día ventas',       value: fmtCurrency(peakPoint?.netSales ?? 0) },
+          { label: activeDateLabel, value: isHourly ? `${data.length} ${t('dashboard.hours') || 'horas'}` : `${numDays} ${t('dashboard.days') || 'días'}` },
+          { label: t('dashboard.avg_labor_pct') || 'Labor % promedio', value: `${laborPct.toFixed(1)}%` },
+          { label: t('dashboard.profit_margin') || 'Margen utilidad', value: `${profitMargin.toFixed(1)}%` },
+          { label: isHourly ? (t('dashboard.sales_peak_hour') || 'Ventas/hora pico') : (t('dashboard.best_day_sales') || 'Mejor día ventas'), value: fmtCurrency(peakPoint?.netSales ?? 0) },
         ].map(s => (
           <div key={s.label} className={styles.statItem}>
             <div className={styles.statValue}>{s.value}</div>

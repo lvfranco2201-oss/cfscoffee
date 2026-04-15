@@ -102,6 +102,13 @@
     "revenue_costs_title": "Ingresos vs Costos",
     "revenue_costs_hourly": "Desglose por hora del día",
     "revenue_costs_daily": "Tendencia diaria del periodo",
+    "kpi_gross_profit": "Utilidad Bruta",
+    "best_day_sales": "Mejor día ventas",
+    "hours": "horas",
+    "days": "días",
+    "avg_labor_pct": "Labor % promedio",
+    "profit_margin": "Margen utilidad",
+    "sales_peak_hour": "Ventas/hora pico",
     "date_olap_alert": "🚧 El motor de cubos OLAP para fechas históricas está en fase de despliegue. Por seguridad financiera temporalmente solo se cargan los datos del último cierre (Cierre Actual)."
   },
   "ventas": {

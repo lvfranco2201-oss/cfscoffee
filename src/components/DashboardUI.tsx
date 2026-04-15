@@ -77,9 +77,9 @@ export default function DashboardUI(props: DashboardUIProps) {
         {/* Top: Filters */}
         <div className={styles.headerActions} style={{ position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
           <TopFilters
-            availableStores={storesData
+            availableStores={props.availableStores ?? (storesData
               .filter(s => s.storeId != null)
-              .map(s => ({ id: String(s.storeId!), name: cleanStoreName(s.storeName) }))
+              .map(s => ({ id: String(s.storeId!), name: cleanStoreName(s.storeName) })))
             }
             onApply={() => {}}
             onRefresh={onRefresh}

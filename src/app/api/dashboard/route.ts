@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { vwDailySalesMetrics, hourlySalesMetrics, paymentData } from '@/lib/db/schema';
+import { vwDailySalesMetrics, hourlySalesMetrics, paymentData, stores } from '@/lib/db/schema';
 import { sum, desc, sql } from 'drizzle-orm';
 import type { DateRange } from '@/context/FilterContext';
 
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     const prevFrom = subtractDays(fromDate, numDays);
 
     // 2. Parallel queries
-    const [kpisRaw, prevKpisRaw, storesRaw, prevStoresRaw, hourlyRawObj, prevHourlyRawObj, paymentRaw, tipRaw, prevTipRaw, avg30Raw, laborPerStoreRaw, dailyTrendRaw, dailyLaborRaw] = await Promise.all([
+    const [kpisRaw, prevKpisRaw, storesRaw, prevStoresRaw, hourlyRawObj, prevHourlyRawObj, paymentRaw, tipRaw, prevTipRaw, avg30Raw, laborPerStoreRaw, dailyTrendRaw, dailyLaborRaw, storesCatalogRaw] = await Promise.all([
 
       // KPIs totales del periodo
       db.select({
@@ -259,6 +259,12 @@ export async function GET(req: NextRequest) {
         GROUP BY date
         ORDER BY date
       `),
+
+      // Full active store catalog (Drizzle ORM to avoid casing issues with PascalCase columns)
+      db.select({ id: stores.id, name: stores.name })
+        .from(stores)
+        .where(sql`${stores.isActive} IS NOT FALSE`)
+        .orderBy(sql`${stores.name} ASC`)
     ]);
 
     // ── Post-process ────────────────────────────────────────────────────────
@@ -391,6 +397,7 @@ export async function GET(req: NextRequest) {
       avg30,
       dailyTrend,
       numDays,
+      availableStores: toRows(storesCatalogRaw).map((s: any) => ({ id: String(s.id), name: String(s.name) })),
     }, {
       // Private: each filter combination is user-specific; cache 1min at browser level only
       headers: { 'Cache-Control': 'private, max-age=60' },

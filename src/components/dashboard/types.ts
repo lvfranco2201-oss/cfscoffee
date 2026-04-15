@@ -60,6 +60,7 @@ export interface DashboardUIProps {
   avg30: Avg30;
   dailyTrend?: { date: string; netSales: number; grossSales: number; discounts: number; laborCost: number; grossProfit: number }[];
   numDays?: number;
+  availableStores?: { id: string; name: string }[];
   onRefresh?: () => void;
   loading?: boolean;
 }

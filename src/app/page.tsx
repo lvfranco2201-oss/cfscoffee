@@ -120,6 +120,7 @@ export default function DashboardPage() {
         avg30={data.avg30}
         dailyTrend={data.dailyTrend}
         numDays={data.numDays}
+        availableStores={data.availableStores}
         onRefresh={() => fetchData()}
         loading={loading}
       />

@@ -11,6 +11,7 @@ import {
   Package,
   Settings,
   TrendingUp,
+  Target,
   LogOut,
   Sun,
   Moon,
@@ -84,12 +85,13 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: t('sidebar.dashboard'),        path: '/',           icon: <BarChart3 size={20} />, enabled: true  },
-    { name: t('sidebar.ventas'),           path: '/ventas',     icon: <TrendingUp size={20} />, enabled: false },
-    { name: t('sidebar.sucursales'),       path: '/sucursales', icon: <Store size={20} />,     enabled: false },
-    { name: t('sidebar.costos_laborales'), path: '/inventario', icon: <Package size={20} />,   enabled: false },
-    { name: t('sidebar.clientes'),         path: '/clientes',   icon: <Users size={20} />,     enabled: false },
-    { name: t('sidebar.productos'),        path: '/productos',  icon: <Coffee size={20} />,    enabled: false },
+    { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true  },
+    { name: 'Presupuesto',                 path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
+    { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: false },
+    { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: false },
+    { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: false },
+    { name: t('sidebar.clientes'),         path: '/clientes',      icon: <Users size={20} />,      enabled: false },
+    { name: t('sidebar.productos'),        path: '/productos',     icon: <Coffee size={20} />,     enabled: false },
   ];
 
   return (
