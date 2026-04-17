@@ -2,14 +2,13 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   BarChart3,
   Coffee,
   Store,
   Users,
   Package,
-  Settings,
   TrendingUp,
   Target,
   FileText,
@@ -17,8 +16,8 @@ import {
   Sun,
   Moon,
   Globe,
-  RefreshCw,
-  Check
+  ChevronDown,
+  Lock
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 import { createClient } from '@/utils/supabase/client';
@@ -35,6 +34,8 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState<string>('Gerente General');
   const [refreshing, setRefreshing] = useState(false);
   const [refreshed, setRefreshed] = useState(false);
+  const [soonOpen, setSoonOpen] = useState(false);
+  const soonContentRef = useRef<HTMLDivElement>(null);
 
   const handleRefresh = async () => {
     if (refreshing) return;
@@ -113,40 +114,10 @@ export default function Sidebar() {
       {/* MENÚ PRINCIPAL */}
       <nav className={styles.nav}>
         <div className={styles.navSection}>{t('sidebar.menu_principal')}</div>
-        {navItems.map((item) => {
+
+        {/* Enabled nav items */}
+        {navItems.filter(i => i.enabled).map((item) => {
           const isActive = pathname === item.path;
-
-          if (!item.enabled) {
-            // Disabled / coming-soon item — no link, just visual
-            return (
-              <div
-                key={item.path}
-                className={styles.navItem}
-                style={{ opacity: 0.4, cursor: 'not-allowed', position: 'relative' }}
-                title={locale === 'en' ? 'Coming Soon' : 'Próximamente'}
-              >
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-                  <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
-                </div>
-                <span className={styles.navItemText}>{item.name}</span>
-                {/* Pill visible on wider sidebar */}
-                <span style={{
-                  marginLeft: 'auto',
-                  fontSize: '0.6rem', fontWeight: 700,
-                  letterSpacing: '0.05em', textTransform: 'uppercase',
-                  background: 'rgba(221,167,86,0.12)',
-                  color: 'rgba(221,167,86,0.6)',
-                  border: '1px solid rgba(221,167,86,0.15)',
-                  borderRadius: '6px', padding: '2px 6px',
-                  whiteSpace: 'nowrap',
-                  display: 'var(--sidebar-pill-display, none)',
-                }}>
-                  {locale === 'en' ? 'Soon' : 'Pronto'}
-                </span>
-              </div>
-            );
-          }
-
           return (
             <Link
               key={item.path}
@@ -163,6 +134,57 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {/* ── Collapsible "Próximamente" group ── */}
+        {navItems.some(i => !i.enabled) && (
+          <div className={styles.soonGroup}>
+            {/* Header toggle */}
+            <button
+              onClick={() => setSoonOpen(o => !o)}
+              className={styles.soonToggle}
+              aria-expanded={soonOpen}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Lock size={14} style={{ color: 'rgba(221,167,86,0.55)' }} />
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#64748B' }}>
+                  {locale === 'en' ? 'Coming Soon' : 'Próximamente'}
+                </span>
+              </span>
+              <ChevronDown
+                size={14}
+                style={{
+                  color: '#64748B',
+                  transition: 'transform 0.3s ease',
+                  transform: soonOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </button>
+
+            {/* Animated content */}
+            <div
+              ref={soonContentRef}
+              className={styles.soonContent}
+              style={{
+                maxHeight: soonOpen
+                  ? `${(navItems.filter(i => !i.enabled).length) * 52}px`
+                  : '0px',
+              }}
+            >
+              {navItems.filter(i => !i.enabled).map((item) => (
+                <div
+                  key={item.path}
+                  className={styles.soonItem}
+                  title={locale === 'en' ? 'Coming Soon' : 'Próximamente'}
+                >
+                  <div style={{ color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.icon}
+                  </div>
+                  <span className={styles.navItemText} style={{ color: '#64748B' }}>{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       <div style={{ flexGrow: 1 }} />

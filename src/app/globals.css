@@ -200,9 +200,11 @@ input[type=number] { -moz-appearance: textfield; }
   flex-direction: column;
   z-index: 50;
   backdrop-filter: blur(20px);
-  overflow-y: hidden;
+  /* Allow scroll when zoomed — but hide scrollbar unless needed */
+  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
 .main-content {
@@ -260,6 +262,21 @@ input[type=number] { -moz-appearance: textfield; }
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cfs-slate);
+}
+
+/* Ultra-thin scrollbar scoped to sidebar only (visible on zoom/overflow) */
+.sidebar::-webkit-scrollbar {
+  width: 3px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(221, 167, 86, 0.3);
 }
 
 /* =========================================
