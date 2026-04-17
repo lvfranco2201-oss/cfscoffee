@@ -1,6 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import GlobalFilterBar from './GlobalFilterBar';
 
 // Routes where the sidebar + layout-container should NOT appear
 const NO_SIDEBAR_ROUTES = ['/login', '/coming-soon'];
@@ -17,9 +18,12 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   return (
     <div className="layout-container">
       <Sidebar />
-      <main className="main-content">
-        {children}
-      </main>
+      <div className="content-wrapper">
+        <GlobalFilterBar />
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

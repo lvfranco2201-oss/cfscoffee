@@ -9,7 +9,7 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useDateLocale } from '@/hooks/useDateLocale';
 import { fmt, fmtK as fmtShort } from '@/utils/formatters';
 import { cleanStoreName as _clean } from '@/utils/formatters';
-import TopFilters from './TopFilters';
+
 
 import { useDashboardMetrics } from './dashboard/useDashboardMetrics';
 import { AnomalyAlerts } from './dashboard/AnomalyAlerts';
@@ -76,15 +76,6 @@ export default function DashboardUI(props: DashboardUIProps) {
 
         {/* Top: Filters */}
         <div className={styles.headerActions} style={{ position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'flex-end', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
-          <TopFilters
-            availableStores={props.availableStores ?? (storesData
-              .filter(s => s.storeId != null)
-              .map(s => ({ id: String(s.storeId!), name: cleanStoreName(s.storeName) })))
-            }
-            onApply={() => {}}
-            onRefresh={onRefresh}
-            loading={loading}
-          />
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', border: '1px solid rgba(46,202,127,0.25)', borderRadius: '10px', padding: '7px 14px', color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', fontWeight: 600 }}>
             <span style={{ minWidth: 0, minHeight: 0, width: '7px', height: '7px', borderRadius: '50%', background: '#2eca7f', boxShadow: '0 0 8px #2eca7f', display: 'inline-block' }} />
             {m.currentStoresData.length} {t('dashboard.active_stores')}

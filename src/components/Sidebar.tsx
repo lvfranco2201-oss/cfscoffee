@@ -12,6 +12,7 @@ import {
   Settings,
   TrendingUp,
   Target,
+  FileText,
   LogOut,
   Sun,
   Moon,
@@ -86,6 +87,7 @@ export default function Sidebar() {
 
   const navItems = [
     { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true  },
+    { name: 'Control P&L',                 path: '/control',       icon: <FileText size={20} />,   enabled: true  },
     { name: 'Presupuesto',                 path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
     { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: false },
     { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: false },

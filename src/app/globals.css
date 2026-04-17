@@ -207,9 +207,17 @@ input[type=number] { -moz-appearance: textfield; }
 
 .main-content {
   flex: 1;
-  margin-left: var(--nav-width);
   padding: 1.5rem 2rem;
   min-height: 100vh;
+}
+
+/* Wrapper div that wraps GlobalFilterBar + main (sits to the right of fixed sidebar) */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--nav-width);
 }
 
 .top-header {
@@ -287,8 +295,11 @@ input[type=number] { -moz-appearance: textfield; }
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .main-content {
+  .content-wrapper {
     margin-left: 0;
+  }
+
+  .main-content {
     padding: 0.85rem 0.85rem 80px;
   }
 

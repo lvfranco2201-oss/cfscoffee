@@ -1,23 +1,24 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { stores } from '@/lib/db/schema';
-import { asc } from 'drizzle-orm';
+import { asc, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
     const list = await db
-      .select({ id: stores.id, name: stores.name, locationName: stores.locationName, isActive: stores.isActive })
+      .select({ id: stores.id, name: stores.name })
       .from(stores)
+      .where(sql`${stores.isActive} IS NOT FALSE`)
       .orderBy(asc(stores.name));
 
-    // Return active stores (or all if isActive is null in DB)
-    const active = list.filter(s => s.isActive !== false);
+    const storeList = list.map(s => ({ id: String(s.id), name: String(s.name) }));
 
-    return NextResponse.json(active, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    });
+    return NextResponse.json(
+      { stores: storeList },
+      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } }
+    );
   } catch (err) {
     console.error('[API /stores]', err);
-    return NextResponse.json([], { status: 200 }); // graceful: return empty array
+    return NextResponse.json({ stores: [] });
   }
 }

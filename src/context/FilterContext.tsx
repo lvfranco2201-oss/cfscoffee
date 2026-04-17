@@ -28,6 +28,8 @@ interface FilterContextValue {
   setCustom:  (from: string, to: string) => void;
   setFilter:  (f: Partial<GlobalFilter>) => void;
   resetFilter: () => void;
+  /** Global store list — loaded once, available to all pages and TopFilters */
+  availableStores: { id: string; name: string }[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,11 +62,20 @@ const FilterContext = createContext<FilterContextValue | undefined>(undefined);
 
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filter, setFilterState] = useState<GlobalFilter>(loadFromStorage);
+  const [availableStores, setAvailableStores] = useState<{ id: string; name: string }[]>([]);
 
   // Persist to localStorage on every change
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(filter)); } catch { /* ignore */ }
   }, [filter]);
+
+  // Fetch the store catalog once on app load — rarely changes
+  useEffect(() => {
+    fetch('/api/stores')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (Array.isArray(data?.stores)) setAvailableStores(data.stores); })
+      .catch(() => { /* silent — pages can still pass their own list as fallback */ });
+  }, []);
 
   const setRange    = (range: DateRange)   => setFilterState(f => ({ ...f, range }));
   const setStore    = (store: string)      => setFilterState(f => ({ ...f, store }));
@@ -78,7 +89,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <FilterContext.Provider value={{ filter, setRange, setStore, setCustom, setFilter, resetFilter }}>
+    <FilterContext.Provider value={{ filter, setRange, setStore, setCustom, setFilter, resetFilter, availableStores }}>
       {children}
     </FilterContext.Provider>
   );

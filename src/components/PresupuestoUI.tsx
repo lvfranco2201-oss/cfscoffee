@@ -7,7 +7,7 @@ import {
   Settings2, X, ChevronLeft, ChevronRight, Copy
 } from 'lucide-react';
 import { useFilter, filterToParams } from '@/context/FilterContext';
-import TopFilters from '@/components/TopFilters';
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -592,12 +592,6 @@ export default function PresupuestoUI() {
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-          <TopFilters 
-            availableStores={data?.availableStores ?? []} 
-            onApply={() => fetchData()} 
-            loading={loading} 
-            onRefresh={fetchData} 
-          />
           <button
             onClick={() => setShowEdit(true)}
             style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:10, background:'var(--cfs-gold)', border:'none', color:'#000', fontWeight:700, fontSize:'0.85rem', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}
