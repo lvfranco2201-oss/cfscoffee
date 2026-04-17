@@ -105,21 +105,21 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px' }}>
               <span style={{ color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS.netSales, display: 'inline-block' }} />
-                Ventas Netas
+                {t('dashboard.net_sales')}
               </span>
               <strong style={{ color: COLORS.netSales }}>{fmtCurrency(payload[0].payload.netSales)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px' }}>
               <span style={{ color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS.labor, display: 'inline-block' }} />
-                Costo Laboral
+                {t('dashboard.labor_costs')}
               </span>
               <strong style={{ color: COLORS.labor }}>{fmtCurrency(payload[0].payload.laborCost)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginTop: '4px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <span style={{ color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS.profit, display: 'inline-block' }} />
-                Utilidad Bruta
+                {t('dashboard.kpi_gross_profit')}
               </span>
               <strong style={{ color: COLORS.profit }}>{fmtCurrency(payload[0].payload.grossProfit)}</strong>
             </div>
@@ -254,7 +254,7 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
                 y={totalRevenue * 0.3 / Math.max(data.length, 1)}
                 stroke="rgba(239,68,68,0.3)"
                 strokeDasharray="6 3"
-                label={{ value: '30% target', position: 'right', fontSize: 10, fill: 'rgba(239,68,68,0.5)' }}
+                label={{ value: t('dashboard.labor_target'), position: 'right', fontSize: 10, fill: 'rgba(239,68,68,0.5)' }}
               />
             )}
           </ComposedChart>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RefreshCw, DollarSign, Target, Activity, FileText } from 'lucide-react';
 import { useFilter, filterToParams } from '@/context/FilterContext';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface StoreMetrics {
   storeId: number;
@@ -44,6 +45,7 @@ function fmtPct(n: number | null | undefined, digits = 2) {
 
 export default function ControlUI() {
   const { filter } = useFilter();
+  const { locale } = useTranslation();
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -217,7 +219,7 @@ export default function ControlUI() {
 
           {stores.length === 0 && !loading && (
             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No se encontraron datos para este período.
+              {locale === 'en' ? 'No data found for this period.' : 'No se encontraron datos para este período.'}
             </div>
           )}
         </div>

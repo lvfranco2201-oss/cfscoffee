@@ -92,8 +92,8 @@ export default function DashboardPage() {
   if (!data?.kpis) {
     return (
       <div style={{ padding: '3rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-        <h2 style={{ fontFamily: 'Outfit', marginBottom: '0.5rem' }}>Sin Datos Disponibles</h2>
-        <p>No se encontraron registros para el período seleccionado.</p>
+        <h2 style={{ fontFamily: 'Outfit', marginBottom: '0.5rem' }}>{locale === 'en' ? 'No Data Available' : 'Sin Datos Disponibles'}</h2>
+        <p>{locale === 'en' ? 'No records found for the selected period.' : 'No se encontraron registros para el período seleccionado.'}</p>
       </div>
     );
   }

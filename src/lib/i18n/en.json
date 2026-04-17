@@ -103,12 +103,17 @@
     "revenue_costs_hourly": "Hourly breakdown for the day",
     "revenue_costs_daily": "Daily trend for the period",
     "kpi_gross_profit": "Gross Profit",
+    "labor_cost_pct": "Labor Cost %",
+    "labor_target": "30% Target",
     "best_day_sales": "Best Sales Day",
     "hours": "hours",
     "days": "days",
     "avg_labor_pct": "Avg Labor %",
     "profit_margin": "Profit Margin",
     "sales_peak_hour": "Sales/Peak Hour",
+    "no_data_period": "No data found for this period.",
+    "no_records_period": "No records found for the selected period.",
+    "no_data_available": "No Data Available",
     "date_olap_alert": "🚧 The OLAP cube engine for historical dates is being deployed. For financial security, only the latest close data is currently loaded (Current Close)."
   },
   "ventas": {

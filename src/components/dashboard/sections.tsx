@@ -12,14 +12,20 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import type { PeakHour, PaymentMethod, StoreData, KpiSnapshot } from './types';
 import dynamic from 'next/dynamic';
 
+function MapLoader() {
+  const { t } = useTranslation();
+  return (
+    <div style={{ minWidth: 0, minHeight: 0, height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+      {t('dashboard.map_loading')}
+    </div>
+  );
+}
+
 const DashboardMap = dynamic(() => import('../MapWrapper'), {
   ssr: false,
-  loading: () => (
-    <div style={{ minWidth: 0, minHeight: 0, height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-      Initializing...
-    </div>
-  ),
+  loading: () => <MapLoader />,
 });
+
 
 const cleanStoreName = (v: string) => _clean(v);
 
@@ -462,7 +468,7 @@ export function OperationalEfficiency({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
         <EfficiencyBar
-          label="Labor Cost %"
+          label={t('dashboard.labor_cost_pct')}
           value={laborPct} max={50} target={30}
           color={laborPct > 30 ? 'var(--danger)' : 'var(--success)'}
           format={`${laborPct.toFixed(1)}%`}
