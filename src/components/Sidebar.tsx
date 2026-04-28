@@ -88,8 +88,8 @@ export default function Sidebar() {
 
   const navItems = [
     { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true  },
-    { name: 'Control P&L',                 path: '/control',       icon: <FileText size={20} />,   enabled: true  },
-    { name: 'Presupuesto',                 path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
+    { name: t('sidebar.control_pl'),       path: '/control',       icon: <FileText size={20} />,   enabled: true  },
+    { name: t('sidebar.presupuesto'),      path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
     { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: false },
     { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: false },
     { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: false },
@@ -249,7 +249,7 @@ export default function Sidebar() {
           <button
             onClick={handleLogout}
             style={{ background: 'transparent', color: 'var(--danger)', padding: '6px', cursor: 'pointer', opacity: 0.8 }}
-            title="Cerrar Sesión"
+            title={t('sidebar.cerrar_sesion')}
           >
             <LogOut size={18} />
           </button>

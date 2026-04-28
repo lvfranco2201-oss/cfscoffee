@@ -21,7 +21,7 @@ const dictionaries: Record<Locale, any> = {
 };
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [locale, setLocale] = useState<Locale>('es');
+  const [locale, setLocale] = useState<Locale>('en');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
