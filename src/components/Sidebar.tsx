@@ -23,12 +23,15 @@ import styles from './Sidebar.module.css';
 import { createClient } from '@/utils/supabase/client';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import TopFilters from '@/components/TopFilters';
+import { useFilter } from '@/context/FilterContext';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const { t, locale, toggleLanguage } = useTranslation();
+  const { availableStores } = useFilter();
 
   const [userName, setUserName] = useState<string>('Admin');
   const [userRole, setUserRole] = useState<string>('Gerente General');
@@ -90,25 +93,29 @@ export default function Sidebar() {
     { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true  },
     { name: t('sidebar.control_pl'),       path: '/control',       icon: <FileText size={20} />,   enabled: true  },
     { name: t('sidebar.presupuesto'),      path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
-    { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: false },
-    { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: false },
-    { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: false },
-    { name: t('sidebar.clientes'),         path: '/clientes',      icon: <Users size={20} />,      enabled: false },
-    { name: t('sidebar.productos'),        path: '/productos',     icon: <Coffee size={20} />,     enabled: false },
+    { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: true },
+    { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: true },
+    { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: true },
+    { name: t('sidebar.clientes'),         path: '/clientes',      icon: <Users size={20} />,      enabled: true },
+    { name: t('sidebar.productos'),        path: '/productos',     icon: <Coffee size={20} />,     enabled: true },
   ];
 
   return (
     <aside className="sidebar">
       {/* LOGO EMBLEMA */}
-      <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'center', padding: '0 0 1rem 0' }}>
+      <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'center', padding: '0 0 0.5rem 0' }}>
         <Image
           src="/logo-cuadrado.png"
           alt="CFS Emblem"
-          width={130}
-          height={130}
+          width={90}
+          height={90}
           className={styles.heroLogo}
           priority
         />
+      </div>
+
+      <div style={{ marginBottom: '1.25rem' }}>
+        <TopFilters availableStores={availableStores} />
       </div>
 
       {/* MENÚ PRINCIPAL */}

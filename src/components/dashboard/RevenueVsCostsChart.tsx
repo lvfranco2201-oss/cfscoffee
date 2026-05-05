@@ -178,7 +178,7 @@ export function RevenueVsCostsChart({ dailyTrend, peakHours, numDays, activeDate
                 {peakPoint.label}
               </div>
               <div style={{ fontSize: '0.62rem', color: 'var(--cfs-gold)', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                {isHourly ? (t('dashboard.hourly_peak') || 'Hora pico') : (t('dashboard.best_day_sales') || 'Mejor día')}
+                {isHourly ? (t('dashboard.peak_hour') || 'Hora pico') : (t('dashboard.best_day_sales') || 'Mejor día')}
               </div>
             </div>
           )}

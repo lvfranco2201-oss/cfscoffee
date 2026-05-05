@@ -16,7 +16,7 @@
   "control": {
     "subtitle": "P&L Operativo y Métricas Financieras (Basado en tablas actuales)",
     "data_warning_title": "Nota sobre la disponibilidad de datos:",
-    "data_warning_body": "Faltan algunas tablas en la base de datos para completar el reporte exacto al Excel. Los campos de COGS (Food, Bakery, Coffee, etc.), Mantenimiento, y Depósitos en Efectivo se muestran en $0 como placeholders hasta que esas tablas sean migradas a Supabase.",
+    "data_warning_body": "Faltan algunas tablas en la base de datos para completar el reporte exacto al Excel. Los campos de COGS (Food, Bakery, Coffee, etc.), Mantenimiento, y Depósitos en Efectivo se muestran en $0 como placeholders hasta que esas tablas sean migradas.",
     "metric_col": "MÉTRICA",
     "total_col": "TOTAL"
   },

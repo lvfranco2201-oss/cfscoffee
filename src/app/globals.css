@@ -191,16 +191,19 @@ input[type=number] { -moz-appearance: textfield; }
   width: var(--nav-width);
   background: #0B1120; /* Solid sleek Vantablack */
   border-right: 1px solid rgba(255, 255, 255, 0.05); /* Hardware line */
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 12px 0 32px rgba(0,0,0,0.4);
   height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   z-index: 50;
   backdrop-filter: blur(20px);
-  /* Allow scroll when zoomed — but hide scrollbar unless needed */
+  /* Prevent scroll for fixed look, unless strictly necessary on very tiny screens */
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;

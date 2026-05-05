@@ -115,68 +115,78 @@ function KpiCard({
   trend?: 'up' | 'down' | null; sparkValues?: number[];
 }) {
   return (
-    <div className="glass-card" style={{ gap: 0, position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: bg, opacity: 0.35, pointerEvents: 'none' }} />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</span>
-        <span style={{ padding: 7, borderRadius: 10, background: bg, color }}>{icon}</span>
+    <div className="glass-card" style={{ gap: 0, position: 'relative', overflow: 'hidden', borderBottom: `2px solid ${color}33` }}>
+      {/* Ambient orb */}
+      <div style={{ position: 'absolute', top: -24, right: -24, width: 100, height: 100, borderRadius: '50%', background: bg, opacity: 0.4, pointerEvents: 'none', filter: 'blur(8px)' }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+        <span style={{ padding: 8, borderRadius: 10, background: bg, color, boxShadow: `0 0 12px ${color}44` }}>{icon}</span>
       </div>
-      <div style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', marginBottom: 2 }}>{value}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {sub && <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>{sub}</span>}
-        {trend && (
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: trend === 'up' ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 2 }}>
-            {trend === 'up' ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-          </span>
-        )}
-        {sparkValues && <Sparkline values={sparkValues} color={color} />}
+      <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.03em', color, marginBottom: 4 }}>{value}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+        {sub && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{sub}</span>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {trend && (
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: trend === 'up' ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 2 }}>
+              {trend === 'up' ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+            </span>
+          )}
+          {sparkValues && <Sparkline values={sparkValues} color={color} />}
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Horizontal Bar Chart with rank badges ───────────────────────────────────
 function HBar({ stores, metric, label, color, fmt }: {
   stores: StoreMetrics[]; metric: keyof StoreMetrics;
   label: string; color: string; fmt: (v: number) => string;
 }) {
   const sorted = [...stores].sort((a, b) => (b[metric] as number) - (a[metric] as number)).slice(0, 8);
   const max = Math.max(...sorted.map(s => s[metric] as number), 1);
-  const H = 28, GAP = 6, LW = 115, CW = 240;
+  const sumAll = sorted.reduce((a, s) => a + (s[metric] as number), 0);
+  const H = 22, GAP = 6, LW = 118, CW = 190;
   const medals = ['🥇','🥈','🥉'];
+  const gradId = `hbar-${label.replace(/\s/g,'')}`;
   return (
-    <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <BarChart2 size={13} style={{ color }} />
         <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.82rem' }}>{label}</span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{sorted.length} stores</span>
       </div>
       <svg width="100%" viewBox={`0 0 ${LW + CW + 80} ${sorted.length * (H + GAP)}`} style={{ overflow: 'visible' }}>
         <defs>
-          <linearGradient id={`hbar-${label.replace(/\s/g,'')}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={color} stopOpacity={0.55} />
+          <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor={color} stopOpacity={0.45} />
             <stop offset="100%" stopColor={color} stopOpacity={1} />
           </linearGradient>
         </defs>
         {sorted.map((s, i) => {
           const v = s[metric] as number;
           const bw = (v / max) * CW;
+          const sharePct = sumAll > 0 ? ((v / sumAll) * 100).toFixed(0) + '%' : '';
           const y = i * (H + GAP);
           const name = cleanName(s.storeName);
           const lbl = name.length > 15 ? name.slice(0, 14) + '\u2026' : name;
           return (
             <g key={s.storeId}>
-              {/* Medal */}
-              {i < 3 && <text x={8} y={y + H / 2 + 5} style={{ fontSize: 13 }}>{medals[i]}</text>}
+              {i < 3 && <text x={6} y={y + H / 2 + 4} style={{ fontSize: 11 }}>{medals[i]}</text>}
               <text x={LW - 6} y={y + H / 2 + 4} textAnchor="end"
-                style={{ fill: i === 0 ? 'var(--text-main)' : 'var(--text-muted)', fontSize: 9.5, fontFamily: 'Inter', fontWeight: i === 0 ? 700 : 400 }}>{lbl}</text>
+                style={{ fill: i === 0 ? 'var(--text-main)' : 'var(--text-muted)', fontSize: 9, fontFamily: 'Inter', fontWeight: i === 0 ? 700 : 400 }}>{lbl}</text>
               {/* Track */}
-              <rect x={LW} y={y} width={CW} height={H} rx={6} fill="rgba(255,255,255,0.04)" />
-              {/* Filled */}
-              <rect x={LW} y={y} width={Math.max(bw, 4)} height={H} rx={6} fill={`url(#hbar-${label.replace(/\s/g,'')})`} />
+              <rect x={LW} y={y} width={CW} height={H} rx={5} fill="rgba(255,255,255,0.04)" />
+              {/* Fill */}
+              <rect x={LW} y={y} width={Math.max(bw, 4)} height={H} rx={5} fill={`url(#${gradId})`}
+                style={{ filter: i === 0 ? `drop-shadow(0 0 4px ${color}66)` : 'none' }} />
               {/* Shine */}
-              <rect x={LW} y={y + 2} width={Math.max(bw, 4)} height={H / 3} rx={4} fill="rgba(255,255,255,0.1)" />
-              <text x={LW + bw + 6} y={y + H / 2 + 4}
-                style={{ fill: color, fontSize: 9.5, fontFamily: 'Inter', fontWeight: 700 }}>{fmt(v)}</text>
+              <rect x={LW} y={y + 1} width={Math.max(bw, 4)} height={H / 3} rx={3} fill="rgba(255,255,255,0.1)" />
+              {/* Value */}
+              <text x={LW + bw + 5} y={y + H / 2 + 4}
+                style={{ fill: color, fontSize: 9, fontFamily: 'Inter', fontWeight: 700 }}>{fmt(v)}</text>
+              {/* Share % */}
+              <text x={LW + CW + 76} y={y + H / 2 + 4} textAnchor="end"
+                style={{ fill: 'var(--text-muted)', fontSize: 8, fontFamily: 'Inter' }}>{sharePct}</text>
             </g>
           );
         })}
@@ -187,40 +197,57 @@ function HBar({ stores, metric, label, color, fmt }: {
 
 // ── Donut Chart ────────────────────────────────────────────────────────────────
 function DonutChart({ cash, card, tips, total }: { cash: number; card: number; tips: number; total: number }) {
-  const R = 52, cx = 70, cy = 70, sw = 18;
+  const R = 52, cx = 70, cy = 70, sw = 20;
   const circ = 2 * Math.PI * R;
-  const segments = [
+  let segments = [
     { val: cash, color: '#2eca7f', label: 'Cash' },
     { val: card, color: '#3b82f6', label: 'Card' },
     { val: tips, color: '#DDA756', label: 'Tips' },
   ].filter(s => s.val > 0);
+  
+  if (segments.length === 0 && total > 0) {
+    segments.push({ val: total, color: '#DDA756', label: 'Sales (Default)' });
+  }
+  
   let off = -Math.PI / 2;
   const arcs = segments.map(s => {
     const angle = total > 0 ? (s.val / total) * 2 * Math.PI : 0;
     const da = (angle / (2 * Math.PI)) * circ;
     const rot = (off * 180) / Math.PI;
+    const midAngle = off + angle / 2;
     off += angle;
-    return { ...s, da, rot };
+    return { ...s, da, rot, midAngle, pct: total > 0 ? (s.val / total * 100).toFixed(0) : '0' };
   });
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
       <svg width={140} height={140}>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={sw} />
+        <defs>
+          {arcs.map((a, i) => (
+            <filter key={i} id={`glow-${i}`}>
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          ))}
+        </defs>
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={sw} />
         {arcs.map((a, i) => (
           <circle key={i} cx={cx} cy={cy} r={R} fill="none" stroke={a.color} strokeWidth={sw}
             strokeDasharray={`${a.da} ${circ - a.da}`}
-            style={{ transform: `rotate(${a.rot}deg)`, transformOrigin: `${cx}px ${cy}px` }} />
+            style={{ transform: `rotate(${a.rot}deg)`, transformOrigin: `${cx}px ${cy}px`, filter: `drop-shadow(0 0 4px ${a.color}66)` }} />
         ))}
-        <text x={cx} y={cy - 5} textAnchor="middle" style={{ fill: 'var(--text-main)', fontSize: 15, fontWeight: 700, fontFamily: 'Outfit' }}>{fmt$(total)}</text>
-        <text x={cx} y={cy + 12} textAnchor="middle" style={{ fill: 'var(--text-muted)', fontSize: 9, fontFamily: 'Inter' }}>Total Sales</text>
+        <circle cx={cx} cy={cy} r={R - sw / 2 - 2} fill="rgba(255,255,255,0.02)" />
+        <text x={cx} y={cy - 6} textAnchor="middle" style={{ fill: 'var(--text-main)', fontSize: 14, fontWeight: 700, fontFamily: 'Outfit' }}>{fmt$(total)}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" style={{ fill: 'var(--text-muted)', fontSize: 8.5, fontFamily: 'Inter' }}>Net Sales</text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {segments.map(s => (
-          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-            <span style={{ color: 'var(--text-muted)', minWidth: 34 }}>{s.label}</span>
-            <span style={{ fontWeight: 700, color: s.color }}>{fmt$(s.val)}</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.71rem' }}>{total > 0 ? `(${((s.val / total) * 100).toFixed(0)}%)` : ''}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {arcs.map(a => (
+          <div key={a.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: a.color, flexShrink: 0, boxShadow: `0 0 6px ${a.color}88` }} />
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', minWidth: 30 }}>{a.label}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: a.color }}>{fmt$(a.val)}</span>
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{a.pct}% of sales</span>
+            </div>
           </div>
         ))}
       </div>
@@ -230,8 +257,14 @@ function DonutChart({ cash, card, tips, total }: { cash: number; card: number; t
 
 // ── Labor Gauge ────────────────────────────────────────────────────────────────
 function LaborGauge({ pct }: { pct: number }) {
-  const R = 46, cx = 60, cy = 60;
+  const R = 46, cx = 60, cy = 62;
   const angle = Math.min(pct, 1) * Math.PI;
+  // 30% target tick position
+  const targetAngle = 0.3 * Math.PI;
+  const tx = cx + R * Math.cos(Math.PI + targetAngle);
+  const ty = cy + R * Math.sin(Math.PI + targetAngle);
+  const tx2 = cx + (R + 8) * Math.cos(Math.PI + targetAngle);
+  const ty2 = cy + (R + 8) * Math.sin(Math.PI + targetAngle);
   const x = cx + R * Math.cos(Math.PI + angle);
   const y = cy + R * Math.sin(Math.PI + angle);
   const color = pct <= 0.3 ? '#2eca7f' : pct <= 0.45 ? '#f59e0b' : '#ef4444';
@@ -239,11 +272,18 @@ function LaborGauge({ pct }: { pct: number }) {
   const fill = `M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${x} ${y}`;
   return (
     <div style={{ textAlign: 'center' }}>
-      <svg width={120} height={72}>
+      <svg width={130} height={80}>
         <path d={d} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={14} strokeLinecap="round" />
-        {pct > 0 && <path d={fill} fill="none" stroke={color} strokeWidth={14} strokeLinecap="round" />}
-        <text x={cx} y={cy - 2} textAnchor="middle" style={{ fill: color, fontSize: 16, fontWeight: 700, fontFamily: 'Outfit' }}>{(pct * 100).toFixed(1)}%</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" style={{ fill: 'var(--text-muted)', fontSize: 9, fontFamily: 'Inter' }}>Payroll</text>
+        {pct > 0 && <path d={fill} fill="none" stroke={color} strokeWidth={14} strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 5px ${color}88)` }} />}
+        {/* 30% target tick */}
+        <line x1={tx} y1={ty} x2={tx2} y2={ty2} stroke="rgba(221,167,86,0.7)" strokeWidth={2} strokeLinecap="round" />
+        <text x={tx2 + 2} y={ty2 - 2} style={{ fill: 'rgba(221,167,86,0.8)', fontSize: 7, fontFamily: 'Inter' }}>30%</text>
+        {/* Needle */}
+        <circle cx={x} cy={y} r={3.5} fill={color} style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+        <text x={cx} y={cy - 4} textAnchor="middle" style={{ fill: color, fontSize: 16, fontWeight: 800, fontFamily: 'Outfit' }}>{(pct * 100).toFixed(1)}%</text>
+        <text x={cx - R} y={cy + 14} style={{ fill: 'var(--text-muted)', fontSize: 7.5, fontFamily: 'Inter' }}>0%</text>
+        <text x={cx + R} y={cy + 14} textAnchor="end" style={{ fill: 'var(--text-muted)', fontSize: 7.5, fontFamily: 'Inter' }}>100%</text>
       </svg>
     </div>
   );
@@ -300,8 +340,13 @@ export default function ControlUI() {
   const avgTicket = total.orders > 0 ? total.netSales / total.orders : 0;
   const discountPct = total.grossSales > 0 ? total.discounts / total.grossSales : 0;
 
-  const renderRow = (label: string, renderCell: (s: StoreMetrics) => React.ReactNode, isHeader = false, isSub = false) => (
-    <tr key={label} style={{ borderBottom: '1px solid var(--border-color)', background: isHeader ? 'rgba(221,167,86,0.07)' : 'transparent' }}>
+  let _rowIdx = 0;
+  const renderRow = (label: string, renderCell: (s: StoreMetrics) => React.ReactNode, isHeader = false, isSub = false) => {
+    const idx = _rowIdx++;
+    const key = `row-${idx}`;
+    const zebraColor = !isHeader && idx % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent';
+    return (
+    <tr key={key} style={{ borderBottom: '1px solid var(--border-color)', background: isHeader ? 'rgba(221,167,86,0.07)' : zebraColor }}>
       <td style={{
         padding: isHeader ? '11px 16px' : '9px 16px',
         fontWeight: isHeader ? 700 : isSub ? 400 : 500,
@@ -331,7 +376,8 @@ export default function ControlUI() {
         </td>
       ))}
     </tr>
-  );
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
@@ -385,43 +431,41 @@ export default function ControlUI() {
         )}
       </div>
 
-      {/* ── Visual Charts Row ── */}
+      {/* ── All Charts Row ── */}
       {stores.length > 0 && (
-        <div className="glass-card" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'stretch' }}>
           {/* Sales by store bar */}
-          <HBar stores={stores} metric="netSales" label="Net Sales by Store" color="#DDA756"
-            fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
-
-          {/* Payment Mix donut */}
-          <div style={{ flex: '0 0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <PieChart size={13} style={{ color: 'var(--cfs-gold)' }} />
-              <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.8rem' }}>Payment Mix</span>
-            </div>
-            <DonutChart cash={total.cashSales} card={total.cardSales} tips={total.tips} total={total.netSales} />
+          <div className="glass-card" style={{ flex: '1 1 20%', minWidth: 260 }}>
+            <HBar stores={stores} metric="netSales" label="Net Sales by Store" color="#DDA756"
+              fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
           </div>
+
+          {stores.length > 1 && (
+            <>
+              <div className="glass-card" style={{ flex: '1 1 20%', minWidth: 260 }}>
+                <HBar stores={stores} metric="laborCost" label="Labor Cost by Store" color="#3b82f6"
+                  fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
+              </div>
+              <div className="glass-card" style={{ flex: '1 1 20%', minWidth: 260 }}>
+                <HBar stores={stores} metric="discounts" label="Discounts by Store" color="#f59e0b"
+                  fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
+              </div>
+            </>
+          )}
 
           {/* Payroll gauge */}
-          <div style={{ flex: '0 0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <Clock size={13} style={{ color: 'var(--cfs-gold)' }} />
-              <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.8rem' }}>Payroll Gauge</span>
+          <div className="glass-card" style={{ flex: '1 1 20%', minWidth: 260, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, width: '100%', justifyContent: 'flex-start' }}>
+              <Clock size={16} style={{ color: 'var(--cfs-gold)' }} />
+              <span style={{ fontFamily: 'Outfit', fontWeight: 700 }}>Payroll Gauge</span>
             </div>
-            <LaborGauge pct={laborPct} />
-            <div style={{ textAlign: 'center', fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: 4 }}>
-              {fmtInt(total.laborHrs)} hrs · {fmt$(total.laborHrs > 0 ? total.netSales / total.laborHrs : 0)}/hr
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
+              <LaborGauge pct={laborPct} />
+              <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', paddingTop: 12 }}>
+                {fmtInt(total.laborHrs)} hrs · {fmt$(total.laborHrs > 0 ? total.netSales / total.laborHrs : 0)}/hr
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ── Labor by Store bar ── */}
-      {stores.length > 1 && (
-        <div className="glass-card" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
-          <HBar stores={stores} metric="laborCost" label="Labor Cost by Store" color="#3b82f6"
-            fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
-          <HBar stores={stores} metric="discounts" label="Discounts by Store" color="#f59e0b"
-            fmt={v => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)} />
         </div>
       )}
 
@@ -489,7 +533,7 @@ export default function ControlUI() {
               {renderRow('COGS %', () => fmtPct(0))}
 
               {renderRow('SALES DEPOSIT CONTROL', () => null, true)}
-              {renderRow('Cash Sales', s => fmt$(s.cashSales))}
+              {renderRow('Cash (Deposit)', s => fmt$(s.cashSales))}
               {renderRow('Cash Deposits', () => fmt$(0), false, true)}
               {renderRow('Cash Balance', s => fmt$(s.cashSales - 0))}
             </tbody>

@@ -507,12 +507,12 @@ function AchievementBarChart({ rows, t }: { rows: BudgetRow[]; t: (k:string)=>st
 
   if (chartRows.length === 0) return null;
 
-  const barH = 30, gap = 7, labelW = 130, chartW = 360;
+  const barH = 20, gap = 5, labelW = 120, chartW = 300;
   const totalH = chartRows.length * (barH + gap);
   const goalX  = labelW + chartW * (100 / 150);
 
   return (
-    <div style={{ flex: '1 1 420px', minWidth: 0 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
         <BarChart2 size={14} style={{ color: 'var(--cfs-gold)' }} />
         <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.88rem' }}>
@@ -523,7 +523,7 @@ function AchievementBarChart({ rows, t }: { rows: BudgetRow[]; t: (k:string)=>st
           100% goal
         </span>
       </div>
-      <svg width="100%" viewBox={`0 0 ${labelW + chartW + 60} ${totalH + 4}`} style={{ overflow: 'visible' }}>
+      <svg width="100%" viewBox={`0 0 ${labelW + chartW + 55} ${totalH + 4}`} style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id="barGood" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#2eca7f" stopOpacity={0.6} />
@@ -575,75 +575,6 @@ function AchievementBarChart({ rows, t }: { rows: BudgetRow[]; t: (k:string)=>st
   );
 }
 
-// ── Status donut ──────────────────────────────────────────────────────────────
-function StatusDonut({ rows, t }: { rows: BudgetRow[]; t: (k:string)=>string }) {
-  const withBudget = rows.filter(r => r.salesAchievementPct !== null);
-  const good  = withBudget.filter(r => (r.salesAchievementPct ?? 0) >= 100).length;
-  const warn  = withBudget.filter(r => { const p = r.salesAchievementPct ?? 0; return p >= 80 && p < 100; }).length;
-  const bad   = withBudget.filter(r => (r.salesAchievementPct ?? 0) < 80).length;
-  const noBdg = rows.filter(r => r.salesAchievementPct === null).length;
-  const total = rows.length;
-  if (total === 0) return null;
-
-  const R = 54, cx = 72, cy = 72, strokeW = 20;
-  const circ = 2 * Math.PI * R;
-  const segments = [
-    { count: good,  color: '#2eca7f', label: t('presupuesto.status_met') },
-    { count: warn,  color: '#f59e0b', label: t('presupuesto.status_risk') },
-    { count: bad,   color: '#ef4444', label: t('presupuesto.status_below') },
-    { count: noBdg, color: 'rgba(255,255,255,0.1)', label: t('presupuesto.status_no_budget') },
-  ].filter(s => s.count > 0);
-
-  let offset = -Math.PI / 2;
-  const arcs = segments.map(s => {
-    const angle   = (s.count / total) * 2 * Math.PI;
-    const dashArr = (angle / (2 * Math.PI)) * circ;
-    const rot     = (offset * 180) / Math.PI;
-    offset += angle;
-    return { ...s, dashArr, rot };
-  });
-
-  const goodPct = total > 0 ? Math.round((good / total) * 100) : 0;
-
-  return (
-    <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-        <Target size={14} style={{ color: 'var(--cfs-gold)' }} />
-        <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.88rem' }}>
-          {t('presupuesto.chart_status_title')}
-        </span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <svg width={144} height={144}>
-          <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={strokeW} />
-          {arcs.map((a, i) => (
-            <circle key={i} cx={cx} cy={cy} r={R} fill="none"
-              stroke={a.color} strokeWidth={strokeW}
-              strokeDasharray={`${a.dashArr} ${circ - a.dashArr}`}
-              style={{ transform: `rotate(${a.rot}deg)`, transformOrigin: `${cx}px ${cy}px`, filter: a.color !== 'rgba(255,255,255,0.1)' ? 'drop-shadow(0 0 4px currentColor)' : 'none' }}
-            />
-          ))}
-          <text x={cx} y={cy - 10} textAnchor="middle"
-            style={{ fill: 'var(--text-main)', fontSize: 24, fontWeight: 700, fontFamily: 'Outfit' }}>{total}</text>
-          <text x={cx} y={cy + 9} textAnchor="middle"
-            style={{ fill: 'var(--text-muted)', fontSize: 9, fontFamily: 'Inter' }}>{t('presupuesto.stores_label')}</text>
-          <text x={cx} y={cy + 24} textAnchor="middle"
-            style={{ fill: '#2eca7f', fontSize: 11, fontFamily: 'Outfit', fontWeight: 700 }}>{goodPct}% on track</text>
-        </svg>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {segments.map(s => (
-            <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.79rem' }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: s.color !== 'rgba(255,255,255,0.1)' ? `0 0 6px ${s.color}` : 'none' }} />
-              <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>{s.label}</span>
-              <span style={{ fontWeight: 700, color: s.color }}>{s.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Variance waterfall ────────────────────────────────────────────────────────
 function VarianceWaterfall({ rows }: { rows: BudgetRow[] }) {
   const valid = [...rows]
@@ -653,20 +584,36 @@ function VarianceWaterfall({ rows }: { rows: BudgetRow[] }) {
   if (valid.length === 0) return null;
 
   const maxAbs = Math.max(...valid.map(r => Math.abs(r.salesVariance ?? 0)), 1);
-  const barH = 26, gap = 6, labelW = 120, halfW = 160;
+  const barH = 22, gap = 6, labelW = 115, halfW = 150;
   const totalH = valid.length * (barH + gap);
   const midX = labelW + halfW;
 
   return (
-    <div style={{ flex: '1 1 340px', minWidth: 0 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
         <DollarSign size={14} style={{ color: 'var(--cfs-gold)' }} />
         <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.88rem' }}>Sales Variance</span>
         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: 4 }}>vs Budget</span>
       </div>
       <svg width="100%" viewBox={`0 0 ${labelW + halfW * 2 + 70} ${totalH}`} style={{ overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="wf-pos" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#2eca7f" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="#2eca7f" stopOpacity={1} />
+          </linearGradient>
+          <linearGradient id="wf-neg" x1="1" x2="0" y1="0" y2="0">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity={1} />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map(t => (
+          <g key={t}>
+            <line x1={midX + t * halfW} y1={0} x2={midX + t * halfW} y2={totalH} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+            <line x1={midX - t * halfW} y1={0} x2={midX - t * halfW} y2={totalH} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+          </g>
+        ))}
         {/* Center axis */}
-        <line x1={midX} y1={0} x2={midX} y2={totalH} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+        <line x1={midX} y1={0} x2={midX} y2={totalH} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
         {valid.map((row, i) => {
           const v    = row.salesVariance ?? 0;
           const pos  = v >= 0;
@@ -674,18 +621,22 @@ function VarianceWaterfall({ rows }: { rows: BudgetRow[] }) {
           const x    = pos ? midX : midX - bw;
           const y    = i * (barH + gap);
           const color = pos ? '#2eca7f' : '#ef4444';
+          const gradId = pos ? 'wf-pos' : 'wf-neg';
           const name  = (row.storeName ?? '').replace(/^CFS Coffee\s*[-–]\s*/i, '').replace(/^CFS\s+/i, '');
           const lbl   = name.length > 15 ? name.slice(0, 14) + '…' : name;
           return (
             <g key={row.storeId}>
               <text x={labelW - 6} y={y + barH / 2 + 4} textAnchor="end"
-                style={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'Inter' }}>{lbl}</text>
-              <rect x={x} y={y} width={Math.max(bw, 3)} height={barH} rx={4} fill={color} opacity={0.8} />
+                style={{ fill: i < 3 ? 'var(--text-main)' : 'var(--text-muted)', fontSize: 9, fontFamily: 'Inter', fontWeight: i < 3 ? 600 : 400 }}>{lbl}</text>
+              <rect x={pos ? midX : midX - halfW} y={y} width={halfW} height={barH} rx={4} fill="rgba(255,255,255,0.03)" />
+              <rect x={x} y={y} width={Math.max(bw, 3)} height={barH} rx={4} fill={`url(#${gradId})`}
+                style={{ filter: `drop-shadow(0 0 4px ${color}55)` }} />
+              <rect x={x} y={y + 1} width={Math.max(bw, 3)} height={barH / 3} rx={3} fill="rgba(255,255,255,0.12)" />
               <text
                 x={pos ? midX + bw + 5 : midX - bw - 5}
                 y={y + barH / 2 + 4}
                 textAnchor={pos ? 'start' : 'end'}
-                style={{ fill: color, fontSize: 10, fontFamily: 'Inter', fontWeight: 700 }}>
+                style={{ fill: color, fontSize: 9, fontFamily: 'Inter', fontWeight: 700 }}>
                 {pos ? '+' : ''}{fmt$(v)}
               </text>
             </g>
@@ -701,7 +652,7 @@ function LaborBubble({ rows }: { rows: BudgetRow[] }) {
   const valid = rows.filter(r => r.actualLaborPct !== null && r.budgetLaborPct !== null && r.actualNetSales > 0);
   if (valid.length < 2) return null;
 
-  const W = 300, H = 160, PL = 30, PB = 24;
+  const W = 310, H = 160, PL = 32, PB = 28;
   const xs = valid.map(r => r.actualNetSales);
   const ys = valid.map(r => r.actualLaborPct ?? 0);
   const maxX = Math.max(...xs); const minX = Math.min(...xs);
@@ -711,43 +662,53 @@ function LaborBubble({ rows }: { rows: BudgetRow[] }) {
   const py = (v: number) => H - PB - ((v - minY) / (maxY - minY || 1)) * (H - PB);
 
   return (
-    <div style={{ flex: '0 0 auto' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <Activity size={13} style={{ color: 'var(--cfs-gold)' }} />
         <span style={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '0.85rem' }}>Labor % vs Sales</span>
       </div>
-      <svg width={W + 20} height={H + 10}>
-        {/* Goal line at budget avg */}
-        <line x1={PL} y1={py(30)} x2={W} y2={py(30)}
-          stroke="rgba(221,167,86,0.35)" strokeWidth={1} strokeDasharray="4 3" />
-        <text x={W + 3} y={py(30) + 4} style={{ fill: 'rgba(221,167,86,0.7)', fontSize: 8, fontFamily: 'Inter' }}>30%</text>
-        {/* Grid */}
-        {[0, 25, 50, 75, 100].map(pct => (
-          <line key={pct} x1={PL} y1={py(pct * (maxY / 100))} x2={W} y2={py(pct * (maxY / 100))}
-            stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width={W + 30} height={H + 16}>
+        {/* H-grid lines */}
+        {[10, 20, 30, 40].map(pct => (
+          <g key={pct}>
+            <line x1={PL} y1={py(pct)} x2={W} y2={py(pct)} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
+            <text x={PL - 4} y={py(pct) + 3} textAnchor="end" style={{ fill: 'var(--text-muted)', fontSize: 7, fontFamily: 'Inter' }}>{pct}%</text>
+          </g>
         ))}
+        {/* 30% goal line */}
+        <line x1={PL} y1={py(30)} x2={W} y2={py(30)}
+          stroke="rgba(221,167,86,0.5)" strokeWidth={1.5} strokeDasharray="5 3" />
+        <text x={W + 4} y={py(30) + 3} style={{ fill: 'rgba(221,167,86,0.9)', fontSize: 7.5, fontFamily: 'Inter', fontWeight: 700 }}>30% target</text>
         {/* Points */}
         {valid.map(row => {
           const x = px(row.actualNetSales);
           const y = py(row.actualLaborPct ?? 0);
           const over = (row.actualLaborPct ?? 0) > (row.budgetLaborPct ?? 30);
           const color = over ? '#ef4444' : '#2eca7f';
+          const name = (row.storeName ?? '').replace(/^CFS Coffee\s*[-–]\s*/i,'').replace(/^CFS\s+/i,'');
+          const abbrev = name.split(' ').slice(0,2).map((w: string) => w[0]).join('').toUpperCase();
           return (
             <g key={row.storeId}>
-              <circle cx={x} cy={y} r={6} fill={color} opacity={0.8} />
-              <circle cx={x} cy={y} r={10} fill={color} opacity={0.1} />
+              <title>{name} — Sales: {fmt$(row.actualNetSales)} | Labor: {fmtPct(row.actualLaborPct)}</title>
+              <circle cx={x} cy={y} r={12} fill={color} opacity={0.1} />
+              <circle cx={x} cy={y} r={6} fill={color} opacity={0.9}
+                style={{ filter: `drop-shadow(0 0 4px ${color}88)` }} />
+              <text x={x} y={y - 9} textAnchor="middle"
+                style={{ fill: color, fontSize: 7, fontFamily: 'Inter', fontWeight: 700 }}>{abbrev}</text>
             </g>
           );
         })}
         {/* Axes */}
-        <line x1={PL} y1={0} x2={PL} y2={H - PB} stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
-        <line x1={PL} y1={H - PB} x2={W} y2={H - PB} stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
-        <text x={PL} y={H + 6} style={{ fill: 'var(--text-muted)', fontSize: 8, fontFamily: 'Inter' }}>Low Sales</text>
-        <text x={W} y={H + 6} textAnchor="end" style={{ fill: 'var(--text-muted)', fontSize: 8, fontFamily: 'Inter' }}>High Sales</text>
+        <line x1={PL} y1={0} x2={PL} y2={H - PB} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+        <line x1={PL} y1={H - PB} x2={W} y2={H - PB} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
+        <text x={PL} y={H + 10} style={{ fill: 'var(--text-muted)', fontSize: 7.5, fontFamily: 'Inter' }}>Low Sales</text>
+        <text x={W} y={H + 10} textAnchor="end" style={{ fill: 'var(--text-muted)', fontSize: 7.5, fontFamily: 'Inter' }}>High Sales</text>
       </svg>
-      <div style={{ display: 'flex', gap: 12, fontSize: '0.7rem', marginTop: 6 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--success)' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />Under budget</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--danger)' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} />Over budget</span>
+      </div>
+      <div style={{ display: 'flex', gap: 14, fontSize: '0.68rem', marginTop: 4 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--success)' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', boxShadow: '0 0 6px var(--success)' }} />Under budget</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--danger)' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block', boxShadow: '0 0 6px var(--danger)' }} />Over budget</span>
       </div>
     </div>
   );
@@ -933,19 +894,27 @@ export default function PresupuestoUI() {
         )}
       </div>
 
-      {/* ── Charts row 1: Donut + Achievement bars ── */}
+      {/* ── Charts: All three in one row ── */}
       {!loading && data && data.rows.length > 0 && (
-        <div className="glass-card" style={{ display:'flex', flexWrap:'wrap', gap:'2.5rem', alignItems:'flex-start' }}>
-          <StatusDonut rows={data.rows} t={t} />
-          <AchievementBarChart rows={data.rows} t={t} />
-        </div>
-      )}
-
-      {/* ── Charts row 2: Variance waterfall + Labor scatter ── */}
-      {!loading && data && data.rows.length > 1 && (
-        <div className="glass-card" style={{ display:'flex', flexWrap:'wrap', gap:'2.5rem', alignItems:'flex-start' }}>
-          <VarianceWaterfall rows={data.rows} />
-          <LaborBubble rows={data.rows} />
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', 
+          gap: '1.5rem', 
+          alignItems: 'stretch' 
+        }}>
+          <div className="glass-card" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <AchievementBarChart rows={data.rows} t={t} />
+          </div>
+          {data.rows.length > 1 && (
+            <>
+              <div className="glass-card" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                <VarianceWaterfall rows={data.rows} />
+              </div>
+              <div className="glass-card" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                <LaborBubble rows={data.rows} />
+              </div>
+            </>
+          )}
         </div>
       )}
 

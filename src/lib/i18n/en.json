@@ -16,7 +16,7 @@
   "control": {
     "subtitle": "P&L Operations & Financial Metrics (Based on current tables)",
     "data_warning_title": "Note on data availability:",
-    "data_warning_body": "Some tables are missing from the database to complete the report exactly as in Excel. COGS fields (Food, Bakery, Coffee, etc.), Maintenance, and Cash Deposits are shown as $0 placeholders until those tables are migrated to Supabase.",
+    "data_warning_body": "Some tables are missing from the database to complete the report exactly as in Excel. COGS fields (Food, Bakery, Coffee, etc.), Maintenance, and Cash Deposits are shown as $0 placeholders until those tables are migrated.",
     "metric_col": "METRIC",
     "total_col": "TOTAL"
   },

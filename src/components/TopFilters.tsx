@@ -43,25 +43,42 @@ function Dropdown({
       <button
         onClick={() => setOpen(o => !o)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '7px',
-          background: 'transparent', border: 'none',
-          color: 'rgba(255,255,255,0.95)', fontSize: '0.82rem',
-          fontWeight: 600, padding: '5px 8px', borderRadius: '8px',
+          display: 'flex', alignItems: 'center', gap: '12px', width: '100%',
+          padding: '10px 14px', borderRadius: '12px',
+          background: open ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)', 
+          border: '1px solid rgba(255,255,255,0.05)',
+          color: open ? '#FFFFFF' : '#94A3B8', 
           cursor: 'pointer', outline: 'none', fontFamily: 'inherit',
-          whiteSpace: 'nowrap',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+          e.currentTarget.style.color = '#FFFFFF';
+        }}
+        onMouseLeave={(e) => {
+          if (!open) {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+            e.currentTarget.style.color = '#94A3B8';
+          }
         }}
       >
-        <Icon size={14} style={{ color: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
-        {labelPrefix && (
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.74rem', fontWeight: 500 }}>
-            {labelPrefix}:
-          </span>
-        )}
-        <span style={{ color: 'rgba(255,255,255,0.9)' }}>{selected?.label ?? '—'}</span>
-        <ChevronDown size={13} style={{
-          color: 'rgba(255,255,255,0.5)',
-          transition: 'transform 0.18s',
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={18} style={{ flexShrink: 0, color: 'inherit' }} />
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flexGrow: 1 }}>
+          {labelPrefix && (
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.6, marginBottom: '-1px' }}>
+              {labelPrefix}
+            </span>
+          )}
+          <span style={{ textAlign: 'left', fontWeight: 600, fontSize: '0.9rem' }}>{selected?.label ?? '—'}</span>
+        </div>
+
+        <ChevronDown size={14} style={{
+          transition: 'transform 0.2s',
           transform: open ? 'rotate(180deg)' : 'rotate(0)',
+          opacity: 0.5
         }} />
       </button>
 
@@ -272,11 +289,8 @@ export default function TopFilters({
   return (
     <>
       <div style={{
-        display: 'flex', gap: '4px', alignItems: 'center',
-        background: 'rgba(0,0,0,0.48)', backdropFilter: 'blur(14px)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        padding: '5px 10px', borderRadius: '12px',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%',
+        marginBottom: '0.4rem'
       }}>
         {/* Store selector */}
         {storeOptions.length > 1 && (
@@ -288,7 +302,6 @@ export default function TopFilters({
               onChange={handleStoreChange}
               labelPrefix={isEn ? 'Store' : 'Sucursal'}
             />
-            <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
           </>
         )}
 
@@ -303,8 +316,7 @@ export default function TopFilters({
 
         {/* Custom date badge */}
         {filter.range === 'custom' && filter.customFrom && filter.customTo && (
-          <>
-            <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
+          <div style={{ padding: '0 4px' }}>
             <span style={{
               fontSize: '0.72rem', fontWeight: 700, color: 'var(--cfs-gold)',
               padding: '2px 8px', borderRadius: '6px',
@@ -313,25 +325,25 @@ export default function TopFilters({
             }}>
               {dateLabel('custom', filter.customFrom, filter.customTo)}
             </span>
-          </>
+          </div>
         )}
 
         {/* Reset to default button — only shown when filter is non-default */}
         {isDirty && (
           <>
-            <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
             <button
               onClick={() => { resetFilter(); onApply?.({ range: 'today', store: 'all', customFrom: '', customTo: '' }); }}
               title={isEn ? 'Reset filters' : 'Restablecer filtros'}
               style={{
-                background: 'none', border: 'none',
-                color: 'rgba(221,167,86,0.7)',
-                cursor: 'pointer', padding: '4px 6px', borderRadius: '6px',
-                display: 'flex', alignItems: 'center',
-                transition: 'color 0.2s',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                color: 'rgba(221,167,86,0.9)', width: '100%',
+                cursor: 'pointer', padding: '8px 12px', borderRadius: '10px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                transition: 'all 0.2s', fontSize: '0.82rem', fontWeight: 500,
               }}
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={15} />
+              {isEn ? 'Reset filters' : 'Restablecer filtros'}
             </button>
           </>
         )}
@@ -339,19 +351,20 @@ export default function TopFilters({
         {/* Refresh */}
         {onRefresh && (
           <>
-            <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
             <button
               onClick={onRefresh}
               disabled={loading}
               title={isEn ? 'Refresh' : 'Actualizar'}
               style={{
-                background: 'none', border: 'none',
-                color: loading ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)',
-                cursor: loading ? 'default' : 'pointer',
-                padding: '4px 6px', borderRadius: '6px', display: 'flex',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                color: loading ? 'rgba(255,255,255,0.3)' : 'var(--cfs-slate)',
+                cursor: loading ? 'default' : 'pointer', width: '100%',
+                padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                fontSize: '0.82rem', fontWeight: 500, transition: 'all 0.2s',
               }}
             >
-              <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              <RefreshCw size={15} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              {isEn ? 'Refresh' : 'Actualizar'}
             </button>
           </>
         )}

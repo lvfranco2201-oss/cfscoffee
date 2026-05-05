@@ -19,7 +19,6 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <div className="layout-container">
       <Sidebar />
       <div className="content-wrapper">
-        <GlobalFilterBar />
         <main className="main-content">
           {children}
         </main>
