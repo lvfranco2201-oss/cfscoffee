@@ -1,0 +1,131 @@
+name: Toast Sync — Sincronización en tiempo real
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sincronización Toast → Aurora cada 2 horas.
+#
+# SECRETOS REQUERIDOS (Settings → Secrets → Actions):
+#  - CRON_SECRET       → El mismo que CRON_SECRET en Vercel
+#  - VERCEL_APP_URL    → URL de producción, ej: https://css-coffee-bi.vercel.app
+#  - SLACK_WEBHOOK_URL → (Opcional) Webhook de Slack para notificaciones de fallo
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Cada 2 horas en punto (UTC)
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Modo de ejecución'
+        required: false
+        default: 'sync'
+        type: choice
+        options:
+          - sync          # Solo sincronizar hoy (normal)
+          - backfill_7    # Recuperar últimos 7 días
+          - backfill_30   # Recuperar últimos 30 días
+
+jobs:
+  toast-sync:
+    name: Sincronizar Toast → Aurora
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 🕐 Hora de inicio (Eastern Time)
+        run: |
+          echo "UTC:     $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Eastern: $(TZ='America/New_York' date '+%Y-%m-%d %H:%M:%S ET')"
+
+      # ── Sincronización principal (hoy) ──────────────────────────────────────
+      - name: 📡 Sincronizar datos de hoy
+        id: sync
+        if: ${{ github.event.inputs.mode != 'backfill_7' && github.event.inputs.mode != 'backfill_30' }}
+        run: |
+          RESPONSE=$(curl --silent --show-error --fail-with-body \
+            --max-time 300 \
+            --write-out "\n__HTTP_STATUS__%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron/toast-sync")
+
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "__HTTP_STATUS__" | sed 's/__HTTP_STATUS__//')
+          BODY=$(echo "$RESPONSE" | sed '/__HTTP_STATUS__/d')
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+
+          PROCESSED=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('summary',{}).get('processed','?'))" 2>/dev/null || echo "?")
+          ERRORS=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('summary',{}).get('errors','?'))" 2>/dev/null || echo "?")
+          NET_SALES=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); t=d.get('totals',{}); print(f\"\${t.get('netSales',0):,.2f}\")" 2>/dev/null || echo "?")
+          ORDERS=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('totals',{}).get('orders','?'))" 2>/dev/null || echo "?")
+          MESSAGE=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('message','Sin mensaje'))" 2>/dev/null || echo "Ver logs")
+
+          echo "processed=$PROCESSED"  >> "$GITHUB_OUTPUT"
+          echo "errors=$ERRORS"        >> "$GITHUB_OUTPUT"
+          echo "net_sales=$NET_SALES"  >> "$GITHUB_OUTPUT"
+          echo "orders=$ORDERS"        >> "$GITHUB_OUTPUT"
+          echo "message=$MESSAGE"      >> "$GITHUB_OUTPUT"
+          echo "http_status=$HTTP_STATUS" >> "$GITHUB_OUTPUT"
+
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "❌ HTTP $HTTP_STATUS"
+            exit 1
+          fi
+
+      # ── Backfill manual (disparado desde GitHub UI) ─────────────────────────
+      - name: 🔄 Backfill últimos 7 días
+        if: ${{ github.event.inputs.mode == 'backfill_7' }}
+        run: |
+          echo "Ejecutando backfill de 7 días..."
+          curl --silent --show-error --fail \
+            --max-time 300 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron/toast-backfill?days=7" \
+            | python3 -m json.tool
+
+      - name: 🔄 Backfill últimos 30 días
+        if: ${{ github.event.inputs.mode == 'backfill_30' }}
+        run: |
+          echo "Ejecutando backfill de 30 días..."
+          curl --silent --show-error --fail \
+            --max-time 300 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron/toast-backfill?days=30" \
+            | python3 -m json.tool
+
+      # ── Resumen del job exitoso ─────────────────────────────────────────────
+      - name: ✅ Resumen de sincronización
+        if: success() && steps.sync.outcome == 'success'
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  ✅  SINCRONIZACIÓN EXITOSA"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Sucursales procesadas : ${{ steps.sync.outputs.processed }}"
+          echo "  Errores               : ${{ steps.sync.outputs.errors }}"
+          echo "  Ventas netas (hoy)    : \$${{ steps.sync.outputs.net_sales }}"
+          echo "  Órdenes               : ${{ steps.sync.outputs.orders }}"
+          echo "  Mensaje               : ${{ steps.sync.outputs.message }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # ── Notificación de fallo por Slack ─────────────────────────────────────
+      - name: 🚨 Notificación Slack (fallo)
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "text": "🚨 *Toast Sync falló* — CFS Coffee BI",
+            "attachments": [{
+              "color": "danger",
+              "fields": [
+                { "title": "Workflow",  "value": "toast-sync", "short": true },
+                { "title": "HTTP",      "value": "${{ steps.sync.outputs.http_status || 'N/A' }}", "short": true },
+                { "title": "Mensaje",   "value": "${{ steps.sync.outputs.message || 'Error desconocido' }}", "short": false },
+                { "title": "Ver logs",  "value": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false }
+              ]
+            }]
+          }
+          EOF
+          )
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "$PAYLOAD" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"

@@ -37,6 +37,32 @@ const ENV_VARS: EnvVar[] = [
     description: 'Token secreto para autenticar llamadas al cron (desde Vercel)',
     required: false, // Optional: only required in production
   },
+  // ── Toast Analytics API ────────────────────────────────────────────────────
+  {
+    key: 'TOAST_API_HOSTNAME',
+    description: 'URL base de la API de Toast (ej: https://ws-api.toasttab.com)',
+    required: true,
+  },
+  {
+    key: 'TOAST_ANALYTICS_BASE_PATH',
+    description: 'Base path de la Analytics API (ej: /era/v1)',
+    required: true,
+  },
+  {
+    key: 'TOAST_CLIENT_ID',
+    description: 'Client ID de la Toast Analytics API (desde AWS Secrets Manager)',
+    required: true,
+  },
+  {
+    key: 'TOAST_CLIENT_SECRET',
+    description: 'Client Secret de la Toast Analytics API (desde AWS Secrets Manager)',
+    required: true,
+  },
+  {
+    key: 'TOAST_USER_ACCESS_TYPE',
+    description: 'Tipo de acceso Toast (siempre: TOAST_MACHINE_CLIENT)',
+    required: false,
+  },
 ];
 
 function validateEnv(): void {
@@ -100,4 +126,14 @@ export const env = {
   nodeEnv:                process.env.NODE_ENV,
   isDev:                  process.env.NODE_ENV === 'development',
   isProd:                 process.env.NODE_ENV === 'production',
+  // ── Toast Analytics API ───────────────────────────────────────────────────
+  toast: {
+    apiHostname:      process.env.TOAST_API_HOSTNAME!,
+    analyticsBase:    process.env.TOAST_ANALYTICS_BASE_PATH ?? '/era/v1',
+    clientId:         process.env.TOAST_CLIENT_ID!,
+    clientSecret:     process.env.TOAST_CLIENT_SECRET!,
+    userAccessType:   process.env.TOAST_USER_ACCESS_TYPE ?? 'TOAST_MACHINE_CLIENT',
+    pollingIntervalMs: Number(process.env.TOAST_POLLING_INTERVAL_MS ?? '3000'),
+    maxPollingAttempts: Number(process.env.TOAST_MAX_POLLING_ATTEMPTS ?? '20'),
+  },
 } as const;

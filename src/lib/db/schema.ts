@@ -75,17 +75,40 @@ export const paymentData = pgTable('PaymentData', {
   paidDateTime: timestamp('PaidDateTime', { withTimezone: true }),
 });
 
-// Nueva tabla RollUp para análisis histórico ultra-rápido
+// Tabla principal de métricas diarias consolidadas
+// Fuente: Toast Analytics API (cron) + histórico de vw_StoreCompleteSummary
+// Reemplaza vw_DailySalesMetrics como fuente principal del dashboard
 export const dailyConsolidatedMetrics = pgTable('DailyConsolidatedMetrics', {
-  id: integer('Id').primaryKey().generatedAlwaysAsIdentity(),
-  storeId: integer('StoreId').notNull(),
-  businessDate: date('BusinessDate').notNull(),
-  netSales: numeric('NetSales').default('0'),
-  grossSales: numeric('GrossSales').default('0'),
-  guests: bigint('Guests', { mode: 'number' }).default(0),
-  orders: bigint('Orders', { mode: 'number' }).default(0),
-  laborCost: numeric('LaborCost').default('0'),
-  laborHours: numeric('LaborHours').default('0')
+  id:                   integer('Id').primaryKey().generatedAlwaysAsIdentity(),
+  storeId:              integer('StoreId').notNull(),
+  businessDate:         date('BusinessDate').notNull(),
+  // ── Ventas ─────────────────────────────────────────────────────────────────
+  netSales:             numeric('NetSales').default('0'),
+  grossSales:           numeric('GrossSales').default('0'),
+  discounts:            numeric('Discounts').default('0'),
+  voids:                numeric('Voids').default('0'),
+  refunds:              numeric('Refunds').default('0'),
+  avgOrderValue:        numeric('AvgOrderValue').default('0'),
+  // ── Conteos ────────────────────────────────────────────────────────────────
+  guests:               bigint('Guests',        { mode: 'number' }).default(0),
+  orders:               bigint('Orders',        { mode: 'number' }).default(0),
+  openOrders:           bigint('OpenOrders',    { mode: 'number' }).default(0),
+  closedOrders:         bigint('ClosedOrders',  { mode: 'number' }).default(0),
+  voidCount:            bigint('VoidCount',     { mode: 'number' }).default(0),
+  discountCount:        bigint('DiscountCount', { mode: 'number' }).default(0),
+  // ── Labor ──────────────────────────────────────────────────────────────────
+  laborCost:            numeric('LaborCost').default('0'),
+  laborHours:           numeric('LaborHours').default('0'),
+  salesPerLaborHour:    numeric('SalesPerLaborHour').default('0'),
+  // ── Financiero (de vw_StoreCompleteSummary / PaymentData) ──────────────────
+  tips:                 numeric('Tips').default('0'),
+  tax:                  numeric('Tax').default('0'),
+  visaPayments:         numeric('VisaPayments').default('0'),
+  mastercardPayments:   numeric('MastercardPayments').default('0'),
+  amexPayments:         numeric('AmexPayments').default('0'),
+  cashPayments:         numeric('CashPayments').default('0'),
+  otherPayments:        numeric('OtherPayments').default('0'),
 }, (t) => ({
-  uniqueDailyStore: unique().on(t.storeId, t.businessDate)
+  uniqueDailyStore: unique().on(t.storeId, t.businessDate),
 }));
+
