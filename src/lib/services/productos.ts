@@ -1,18 +1,19 @@
 import { db } from '../db';
-import { hourlySalesMetrics, vwDailySalesMetrics } from '../db/schema';
+import { hourlySalesMetrics, dailyConsolidatedMetrics } from '../db/schema';
 import { sum, asc, desc, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 
 /**
  * Servicio de Análisis de Canales / Productos — CFSCoffee BI
  * Módulo /productos — DiningOption, OrderSource, RevenueCenter, AOV, discount analysis.
- * Datos 100% reales de HourlySalesMetrics.
+ * Datos de HourlySalesMetrics (único lugar con detalle de canal/modo de servicio).
+ * Anchor de fecha: DailyConsolidatedMetrics (fuente principal del dashboard).
  */
 export const getProductosMetrics = unstable_cache(
   async () => {
     const latestRes = await db
-      .select({ latestDate: sql<string>`MAX(${vwDailySalesMetrics.businessDate}::date)` })
-      .from(vwDailySalesMetrics);
+      .select({ latestDate: sql<string>`MAX(${dailyConsolidatedMetrics.businessDate}::date)` })
+      .from(dailyConsolidatedMetrics);
     const lastDate = latestRes[0]?.latestDate;
     if (!lastDate) return null;
 

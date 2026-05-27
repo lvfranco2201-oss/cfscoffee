@@ -1,146 +1,134 @@
 import { db } from '../db';
-import { vwDailySalesMetrics, hourlySalesMetrics, paymentData } from '../db/schema';
+import { dailyConsolidatedMetrics, hourlySalesMetrics, paymentData, stores } from '../db/schema';
 import { sum, desc, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 
 /**
- * Módulo de Servicios Analíticos CFSCoffee
- * Protegido por capa ISR (Caché) — Revalidación: 300s (5 minutos)
- * IMPORTANTE: Sin proyecciones matemáticas. Solo datos reales de la DB.
+ * Módulo de Servicios Analíticos CFSCoffee — página principal (/)
+ * Fuente principal: DailyConsolidatedMetrics
+ * Fuente secundaria: HourlySalesMetrics (solo curva horaria)
  */
+
+const dcm = dailyConsolidatedMetrics;
 
 export const getDashboardMetrics = unstable_cache(
   async () => {
-    // 1. Identificar el último 'businessDate' disponible con ventas reales.
+    // 1. Último businessDate disponible
     const latestDateQuery = await db
-      .select({ latestDate: sql<string>`MAX(${vwDailySalesMetrics.businessDate}::date)` })
-      .from(vwDailySalesMetrics);
+      .select({ latestDate: sql<string>`MAX(${dcm.businessDate}::date)` })
+      .from(dcm);
 
     const lastBusinessDateStr = latestDateQuery[0]?.latestDate;
     if (!lastBusinessDateStr) return { kpis: null, storesPerformance: [] };
 
-    // 2. KPIs consolidados del último día.
-    const consolidadoHoy = await db
-      .select({
-        totalNetSales:   sum(vwDailySalesMetrics.totalNetSales).mapWith(Number),
-        totalGrossSales: sum(vwDailySalesMetrics.totalGrossSales).mapWith(Number),
-        totalGuests:     sum(vwDailySalesMetrics.totalGuests).mapWith(Number),
-        totalOrders:     sum(vwDailySalesMetrics.totalOrders).mapWith(Number),
-        totalDiscounts:  sum(vwDailySalesMetrics.totalDiscounts).mapWith(Number),
-        totalVoids:      sum(vwDailySalesMetrics.totalVoids).mapWith(Number),
-        totalRefunds:    sum(vwDailySalesMetrics.totalRefunds).mapWith(Number),
+    // 2. KPIs + per-store + avg30 en paralelo
+    const [consolidadoHoy, topSucursalesRaw, hourlyData, avg30Raw] = await Promise.all([
+
+      // KPIs consolidados del último día (incluye tips y labor)
+      db.select({
+        totalNetSales:   sum(dcm.netSales).mapWith(Number),
+        totalGrossSales: sum(dcm.grossSales).mapWith(Number),
+        totalGuests:     sum(dcm.guests).mapWith(Number),
+        totalOrders:     sum(dcm.orders).mapWith(Number),
+        totalDiscounts:  sum(dcm.discounts).mapWith(Number),
+        totalVoids:      sum(dcm.voids).mapWith(Number),
+        totalRefunds:    sum(dcm.refunds).mapWith(Number),
+        totalTips:       sum(dcm.tips).mapWith(Number),
+        totalLaborCost:  sum(dcm.laborCost).mapWith(Number),
+        totalLaborHours: sum(dcm.laborHours).mapWith(Number),
       })
-      .from(vwDailySalesMetrics)
-      .where(sql`${vwDailySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`);
+      .from(dcm)
+      .where(sql`${dcm.businessDate}::date = ${lastBusinessDateStr}::date`),
 
-    // 3. Desglose por sucursal — ventas, clientes, órdenes, descuentos, voids.
-    const topSucursalesRaw = await db
-      .select({
-        storeId:        vwDailySalesMetrics.storeId,
-        storeName:      vwDailySalesMetrics.storeName,
-        netSales:       sum(vwDailySalesMetrics.totalNetSales).mapWith(Number),
-        grossSales:     sum(vwDailySalesMetrics.totalGrossSales).mapWith(Number),
-        guests:         sum(vwDailySalesMetrics.totalGuests).mapWith(Number),
-        orders:         sum(vwDailySalesMetrics.totalOrders).mapWith(Number),
-        discounts:      sum(vwDailySalesMetrics.totalDiscounts).mapWith(Number),
-        voids:          sum(vwDailySalesMetrics.totalVoids).mapWith(Number),
-        refunds:        sum(vwDailySalesMetrics.totalRefunds).mapWith(Number),
-      })
-      .from(vwDailySalesMetrics)
-      .where(sql`${vwDailySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
-      .groupBy(vwDailySalesMetrics.storeId, vwDailySalesMetrics.storeName)
-      .orderBy(desc(sum(vwDailySalesMetrics.totalNetSales)));
-
-    // Garantizamos que storeName sea siempre string (nunca null) para satisfacer StoreData[]
-    const topSucursales = topSucursalesRaw.map(s => ({
-      ...s,
-      storeName: s.storeName ?? 'Desconocida',
-      laborCost: 0, // Placeholder, updated below
-    }));
-
-    // 4. Curva horaria — ventas + clientes + labor (SUM DISTINCT para evitar duplicación por segmento)
-    const [hourlyData, avg30Raw, laborPerStoreRaw] = await Promise.all([
-      db
-        .select({
-          hour:      hourlySalesMetrics.businessHour,
-          netSales:  sum(hourlySalesMetrics.netSalesAmount).mapWith(Number),
-          guests:    sum(hourlySalesMetrics.guestCount).mapWith(Number),
-          orders:    sum(hourlySalesMetrics.ordersCount).mapWith(Number),
-          laborCost: sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalPay}), 0)`.mapWith(Number),
-          laborHrs:  sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalHours}), 0)`.mapWith(Number),
-        })
-        .from(hourlySalesMetrics)
-        .where(sql`${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
-        .groupBy(hourlySalesMetrics.businessHour)
-        .orderBy(hourlySalesMetrics.businessHour),
-
-      // Promedio diario de los últimos 30 días (excluye el día actual) para detectar anomalías
+      // Desglose por sucursal — con labor y tips incluidos
       db.execute(sql`
         SELECT
-          AVG(daily_net)::float     AS "avgNetSales",
-          AVG(daily_guests)::float  AS "avgGuests",
-          AVG(daily_orders)::float  AS "avgOrders"
+          d."StoreId"                                  AS "storeId",
+          s."Name"                                     AS "storeName",
+          SUM(d."NetSales"::numeric)::float            AS "netSales",
+          SUM(d."GrossSales"::numeric)::float          AS "grossSales",
+          SUM(d."Guests")::float                       AS "guests",
+          SUM(d."Orders")::float                       AS "orders",
+          SUM(d."Discounts"::numeric)::float           AS "discounts",
+          SUM(d."Voids"::numeric)::float               AS "voids",
+          SUM(d."Refunds"::numeric)::float             AS "refunds",
+          SUM(d."LaborCost"::numeric)::float           AS "laborCost",
+          SUM(d."Tips"::numeric)::float                AS "tips",
+          CASE WHEN SUM(d."LaborHours"::numeric) > 0
+               THEN SUM(d."NetSales"::numeric) / SUM(d."LaborHours"::numeric)
+               ELSE 0 END::float                      AS "salesPerLH"
+        FROM "DailyConsolidatedMetrics" d
+        JOIN "Stores" s ON s."Id" = d."StoreId"
+        WHERE d."BusinessDate"::date = ${lastBusinessDateStr}::date
+        GROUP BY d."StoreId", s."Name"
+        ORDER BY "netSales" DESC
+      `),
+
+      // Curva horaria — sigue en HourlySalesMetrics (único lugar con datos horarios)
+      db.select({
+        hour:      hourlySalesMetrics.businessHour,
+        netSales:  sum(hourlySalesMetrics.netSalesAmount).mapWith(Number),
+        guests:    sum(hourlySalesMetrics.guestCount).mapWith(Number),
+        orders:    sum(hourlySalesMetrics.ordersCount).mapWith(Number),
+        laborCost: sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalPay}), 0)`.mapWith(Number),
+        laborHrs:  sql<number>`COALESCE(SUM(DISTINCT ${hourlySalesMetrics.hourlyJobTotalHours}), 0)`.mapWith(Number),
+      })
+      .from(hourlySalesMetrics)
+      .where(sql`${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
+      .groupBy(hourlySalesMetrics.businessHour)
+      .orderBy(hourlySalesMetrics.businessHour),
+
+      // Promedio 30d (para anomalías) — desde DailyConsolidatedMetrics
+      db.execute(sql`
+        SELECT
+          AVG(daily_net)::float    AS "avgNetSales",
+          AVG(daily_guests)::float AS "avgGuests",
+          AVG(daily_orders)::float AS "avgOrders"
         FROM (
           SELECT
-            ${vwDailySalesMetrics.businessDate}::date          AS d,
-            SUM(${vwDailySalesMetrics.totalNetSales})::float   AS daily_net,
-            SUM(${vwDailySalesMetrics.totalGuests})::float     AS daily_guests,
-            SUM(${vwDailySalesMetrics.totalOrders})::float     AS daily_orders
-          FROM ${vwDailySalesMetrics}
-          WHERE ${vwDailySalesMetrics.businessDate}::date >= (${lastBusinessDateStr}::date - INTERVAL '30 days')
-            AND ${vwDailySalesMetrics.businessDate}::date < ${lastBusinessDateStr}::date
-          GROUP BY ${vwDailySalesMetrics.businessDate}::date
+            "BusinessDate"::date            AS d,
+            SUM("NetSales"::numeric)::float AS daily_net,
+            SUM("Guests")::float            AS daily_guests,
+            SUM("Orders")::float            AS daily_orders
+          FROM "DailyConsolidatedMetrics"
+          WHERE "BusinessDate"::date >= (${lastBusinessDateStr}::date - INTERVAL '30 days')
+            AND "BusinessDate"::date < ${lastBusinessDateStr}::date
+          GROUP BY "BusinessDate"::date
         ) sub
       `),
-      // Fetch raw hourly labor per store directly
-      db
-        .select({
-          storeId:      hourlySalesMetrics.storeId,
-          businessHour: hourlySalesMetrics.businessHour,
-          laborHrPay:   sql<number>`MAX(${hourlySalesMetrics.hourlyJobTotalPay})`.mapWith(Number)
-        })
-        .from(hourlySalesMetrics)
-        .where(sql`${hourlySalesMetrics.businessDate}::date = ${lastBusinessDateStr}::date`)
-        .groupBy(hourlySalesMetrics.storeId, hourlySalesMetrics.businessHour),
     ]);
 
-    // Parse 30-day averages
     const toRows = (res: unknown): Record<string, unknown>[] => {
       if (Array.isArray(res)) return res as Record<string, unknown>[];
       return ((res as { rows?: unknown[] }).rows ?? []) as Record<string, unknown>[];
     };
+
     const avg30Row = toRows(avg30Raw)[0] ?? {};
     const avg30 = {
       avgNetSales: Number(avg30Row.avgNetSales ?? 0),
-      avgGuests:   Number(avg30Row.avgGuests ?? 0),
-      avgOrders:   Number(avg30Row.avgOrders ?? 0),
+      avgGuests:   Number(avg30Row.avgGuests   ?? 0),
+      avgOrders:   Number(avg30Row.avgOrders   ?? 0),
     };
 
-    // Parse labor
-    // We get hour by hour max labor per store safely in TS form, now we aggregate it manually.
-    const laborPerStoreRawTyped = laborPerStoreRaw as { storeId: number | string | null, laborHrPay: number }[];
-    const storeLaborMap = new Map<string, number>();
-    
-    laborPerStoreRawTyped.forEach(row => {
-      if (row.storeId != null) {
-        const key = String(row.storeId);
-        storeLaborMap.set(key, (storeLaborMap.get(key) ?? 0) + (row.laborHrPay ?? 0));
-      }
-    });
+    // Sucursales enriquecidas
+    const topSucursales = toRows(topSucursalesRaw).map(s => ({
+      storeId:    Number(s.storeId   ?? 0),
+      storeName:  String(s.storeName ?? 'Desconocida'),
+      netSales:   Number(s.netSales   ?? 0),
+      grossSales: Number(s.grossSales ?? 0),
+      guests:     Number(s.guests     ?? 0),
+      orders:     Number(s.orders     ?? 0),
+      discounts:  Number(s.discounts  ?? 0),
+      voids:      Number(s.voids      ?? 0),
+      refunds:    Number(s.refunds    ?? 0),
+      laborCost:  Number(s.laborCost  ?? 0),
+      tips:       Number(s.tips       ?? 0),
+      salesPerLH: Number(s.salesPerLH ?? 0),
+    }));
 
-    topSucursales.forEach(s => {
-      if (s.storeId != null) {
-        const key = String(s.storeId);
-        if (storeLaborMap.has(key)) {
-          s.laborCost = storeLaborMap.get(key) ?? 0;
-        }
-      }
-    });
-
-    const totalLaborCost = hourlyData.reduce((acc, d) => acc + (d.laborCost ?? 0), 0);
-    const totalLaborHours = hourlyData.reduce((acc, d) => acc + (d.laborHrs ?? 0), 0);
-
-    // Solo horas con ventas reales, formateadas a AM/PM
+    // Curva horaria formateada
+    const totalLaborCost  = hourlyData.reduce((acc, d) => acc + (d.laborCost ?? 0), 0);
+    const totalLaborHours = hourlyData.reduce((acc, d) => acc + (d.laborHrs  ?? 0), 0);
     const peakHours = hourlyData
       .filter(d => d.netSales > 0)
       .map(d => {
@@ -156,65 +144,60 @@ export const getDashboardMetrics = unstable_cache(
         };
       });
 
-    // 5. Métodos de Pago y Propinas — usando settledDate (YYYYMMDD) sin error de TZ
-    const settledDateKey = lastBusinessDateStr.replace(/-/g, '');
+    // Métodos de pago: directo desde los KPIs de DailyConsolidatedMetrics (ya los tenemos)
+    const kpiRow = consolidadoHoy[0];
+    const totalTips = Number(kpiRow?.totalTips ?? 0);
+    const netSales  = Number(kpiRow?.totalNetSales ?? 0);
 
-    const paymentMethodsRaw = await db
-      .select({
+    // Usamos labor de DailyConsolidatedMetrics (más preciso que suma de HourlySalesMetrics)
+    const dcmLaborCost  = Number(kpiRow?.totalLaborCost  ?? 0);
+    const dcmLaborHours = Number(kpiRow?.totalLaborHours ?? 0);
+
+    // Para paymentMethods usamos el query de PaymentData del día (ya que DCM tiene totales por tipo)
+    const settledDateKey = lastBusinessDateStr.replace(/-/g, '');
+    const [paymentMethodsRaw, tipResDay] = await Promise.all([
+      db.select({
         methodType:  paymentData.paymentCardType,
         totalAmount: sum(paymentData.paymentTotal).mapWith(Number),
       })
       .from(paymentData)
       .where(sql`${paymentData.settledDate} = ${settledDateKey}`)
-      .groupBy(paymentData.paymentCardType);
+      .groupBy(paymentData.paymentCardType),
 
-    const tipRes = await db
-      .select({ totalTips: sum(paymentData.tipAmount).mapWith(Number) })
-      .from(paymentData)
-      .where(sql`${paymentData.settledDate} = ${settledDateKey}`);
+      db.select({ totalTips: sum(paymentData.tipAmount).mapWith(Number) })
+        .from(paymentData)
+        .where(sql`${paymentData.settledDate} = ${settledDateKey}`),
+    ]);
 
-    const totalTips = tipRes[0]?.totalTips ?? 0;
-
-    let totalCash = 0;
-    let totalCard = 0;
+    const totalTipsPayment = tipResDay[0]?.totalTips ?? totalTips;
+    let totalCash = 0, totalCard = 0;
     paymentMethodsRaw.forEach(p => {
       const type = p.methodType ? p.methodType.toUpperCase() : 'CASH';
-      if (type === 'CASH' || type.includes('CASH') || type === 'EFECTIVO') {
-        totalCash += p.totalAmount;
-      } else {
-        totalCard += p.totalAmount;
-      }
+      if (type === 'CASH' || type.includes('CASH') || type === 'EFECTIVO') totalCash += p.totalAmount;
+      else totalCard += p.totalAmount;
     });
-
     const paymentMethods = [
       { name: 'Tarjeta / Digital', value: totalCard, color: 'var(--cfs-gold)' },
       { name: 'Efectivo',          value: totalCash, color: 'var(--info)' },
     ].filter(p => p.value > 0);
-
-    // Compensar la diferencia (Terceros / UberEats / Desfase de cierres) estimando con Ventas Netas
     const sumPayments = totalCard + totalCash;
-    const netSales = consolidadoHoy[0]?.totalNetSales ?? 0;
-    const estimatedExpected = netSales + totalTips;
-    if (estimatedExpected > sumPayments) {
-      paymentMethods.push({
-        name: 'Plataformas / Otros',
-        value: estimatedExpected - sumPayments,
-        color: '#94A3B8', // Un gris neutro o plata
-      });
+    const estimatedExpected = netSales + totalTipsPayment;
+    if (estimatedExpected > sumPayments && sumPayments > 0) {
+      paymentMethods.push({ name: 'Plataformas / Otros', value: estimatedExpected - sumPayments, color: '#94A3B8' });
     }
 
     return {
       lastBusinessDateStr,
-      kpis: consolidadoHoy[0],
+      kpis: kpiRow ?? null,
       storesPerformance: topSucursales,
       peakHours,
       paymentMethods,
-      totalTips,
-      totalLaborCost,
-      totalLaborHours,
+      totalTips: totalTipsPayment,
+      totalLaborCost:  dcmLaborCost  || totalLaborCost,
+      totalLaborHours: dcmLaborHours || totalLaborHours,
       avg30,
     };
   },
-  ['dashboard-metrics-v5'],
+  ['dashboard-metrics-v6'],
   { revalidate: 300, tags: ['dashboard'] }
 );
