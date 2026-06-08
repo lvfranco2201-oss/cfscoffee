@@ -17,8 +17,8 @@ interface ProductosData {
   discountByChannel: { name: string; discountPct: number; discountPerOrder: number; discountOrderPct: number; totalDiscounts: number; totalOrders: number }[];
 }
 
-const fmt = (n: number, d = 0) => `$${n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}`;
-const fmtK = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${(n / 1000).toFixed(1)}K` : `$${n.toFixed(0)}`;
+const fmt = (n: number, d = 0) => `$${(n || 0).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}`;
+const fmtK = (n: number) => { const v = n || 0; return v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${v.toFixed(0)}`; };
 const COLORS = ['#DDA756', '#3b82f6', '#2eca7f', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899'];
 
 export default function ProductosUI({ data }: { data: ProductosData }) {
@@ -241,14 +241,14 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                   <div key={i}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.78rem' }}>
                       <span style={{ fontWeight: 600 }}>{d.name}</span>
-                      <span style={{ color: isHigh ? 'var(--warning)' : 'var(--success)', fontWeight: 700, fontFamily: 'Outfit' }}>{d.discountPct.toFixed(1)}%</span>
+                      <span style={{ color: isHigh ? 'var(--warning)' : 'var(--success)', fontWeight: 700, fontFamily: 'Outfit' }}>{(d.discountPct || 0).toFixed(1)}%</span>
                     </div>
                     <div style={{ minWidth: 0, minHeight: 0, height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px' }}>
-                      <div style={{ width: `${Math.min(d.discountPct * 5, 100)}%`, height: '100%', background: isHigh ? 'var(--warning)' : 'var(--success)', borderRadius: '6px', opacity: 0.8 }} />
+                      <div style={{ width: `${Math.min((d.discountPct || 0) * 5, 100)}%`, height: '100%', background: isHigh ? 'var(--warning)' : 'var(--success)', borderRadius: '6px', opacity: 0.8 }} />
                     </div>
                     <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '10px' }}>
                       <span>{fmt(d.totalDiscounts)}</span>
-                      <span>{d.discountOrderPct.toFixed(0)}% de órdenes</span>
+                      <span>{(d.discountOrderPct || 0).toFixed(0)}% de órdenes</span>
                       <span>{fmt(d.discountPerOrder)}/orden</span>
                     </div>
                   </div>
