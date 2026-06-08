@@ -107,9 +107,10 @@ jobs:
           echo "  Mensaje               : ${{ steps.sync.outputs.message }}"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-      # ── Notificación de fallo por Slack ─────────────────────────────────────
       - name: 🚨 Notificación Slack (fallo)
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           PAYLOAD=$(cat <<EOF
           {
