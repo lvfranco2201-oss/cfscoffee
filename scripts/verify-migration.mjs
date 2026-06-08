@@ -39,7 +39,7 @@ console.log(`   Labor Hours:  ${Number(summary.total_hours).toFixed(0)}`);
 console.log(`   Tips:         $${Number(summary.total_tips).toLocaleString('en-US',{minimumFractionDigits:2})}`);
 
 // 2. Comparar último día vs vw_DailySalesMetrics
-const lastDate = String(summary.to_date).slice(0,10);
+const lastDate = new Date(summary.to_date).toISOString().slice(0,10);
 const { rows: [dcmDay] } = await db.query(`
   SELECT SUM("NetSales"::numeric) AS net, SUM("Guests") AS guests, SUM("Orders") AS orders,
          SUM("LaborCost"::numeric) AS labor, SUM("Tips"::numeric) AS tips
