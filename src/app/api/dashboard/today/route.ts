@@ -66,7 +66,7 @@ export async function GET(request: Request) {
           d."Orders"                           AS "orders",
           d."LaborCost"::numeric               AS "laborCost",
           d."LaborHours"::numeric              AS "laborHours"
-        FROM "DailyConsolidatedMetrics" d
+        FROM "vw_RealtimeConsolidatedMetrics" d
         LEFT JOIN "Stores" s ON s."Id" = d."StoreId"
         WHERE d."BusinessDate"::date = ${todayET}::date
           ${storeId !== 'all'

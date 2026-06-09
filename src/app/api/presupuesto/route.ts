@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { db } from '@/lib/db';
-import { dailyConsolidatedMetrics, vwDailySalesMetrics, hourlySalesMetrics, stores } from '@/lib/db/schema';
+import { vwRealtimeConsolidatedMetrics, vwDailySalesMetrics, hourlySalesMetrics, stores } from '@/lib/db/schema';
 import { sql, and, eq } from 'drizzle-orm';
 import { sum } from 'drizzle-orm';
 
@@ -215,23 +215,23 @@ export async function GET(req: NextRequest) {
         laborCost: laborMap.get(s.storeId ?? -1) ?? 0,
       }));
     } catch {
-      // Fallback to DailyConsolidatedMetrics if view doesn't exist
+      // Fallback to vwRealtimeConsolidatedMetrics if view doesn't exist
       try {
         const fallback = await db
           .select({
-            storeId:   dailyConsolidatedMetrics.storeId,
-            netSales:  sum(dailyConsolidatedMetrics.netSales).mapWith(Number),
-            laborCost: sum(dailyConsolidatedMetrics.laborCost).mapWith(Number),
+            storeId:   vwRealtimeConsolidatedMetrics.storeId,
+            netSales:  sum(vwRealtimeConsolidatedMetrics.netSales).mapWith(Number),
+            laborCost: sum(vwRealtimeConsolidatedMetrics.laborCost).mapWith(Number),
           })
-          .from(dailyConsolidatedMetrics)
+          .from(vwRealtimeConsolidatedMetrics)
           .where(
             and(
-              sql`${dailyConsolidatedMetrics.businessDate} >= ${from}::date`,
-              sql`${dailyConsolidatedMetrics.businessDate} <= ${to}::date`,
-              ...(storeParam !== 'all' ? [eq(dailyConsolidatedMetrics.storeId, parseInt(storeParam))] : [])
+              sql`${vwRealtimeConsolidatedMetrics.businessDate} >= ${from}::date`,
+              sql`${vwRealtimeConsolidatedMetrics.businessDate} <= ${to}::date`,
+              ...(storeParam !== 'all' ? [eq(vwRealtimeConsolidatedMetrics.storeId, parseInt(storeParam))] : [])
             )
           )
-          .groupBy(dailyConsolidatedMetrics.storeId);
+          .groupBy(vwRealtimeConsolidatedMetrics.storeId);
         actualSales = fallback.map(f => ({ storeId: f.storeId, netSales: f.netSales ?? 0, laborCost: f.laborCost ?? 0 }));
       } catch { actualSales = []; }
     }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { stores, dailyConsolidatedMetrics } from '@/lib/db/schema';
+import { stores, dailyConsolidatedMetrics, dailyConsolidatedMetricsRealtime } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 
@@ -178,10 +178,10 @@ export async function GET(request: Request) {
         };
 
         await db
-          .insert(dailyConsolidatedMetrics)
+          .insert(dailyConsolidatedMetricsRealtime)
           .values(upsertValues)
           .onConflictDoUpdate({
-            target: [dailyConsolidatedMetrics.storeId, dailyConsolidatedMetrics.businessDate],
+            target: [dailyConsolidatedMetricsRealtime.storeId, dailyConsolidatedMetricsRealtime.businessDate],
             set: upsertValues,
           });
 

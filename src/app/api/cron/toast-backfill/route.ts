@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { stores, dailyConsolidatedMetrics } from '@/lib/db/schema';
+import { stores, dailyConsolidatedMetrics, dailyConsolidatedMetricsRealtime } from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 import { getSalesForAllRestaurants, getLaborForAllRestaurants, getRestaurants } from '@/lib/toast/toast-analytics';
 
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
           const laborHours = labor?.totalHours ?? 0;
 
           await db
-            .insert(dailyConsolidatedMetrics)
+            .insert(dailyConsolidatedMetricsRealtime)
             .values({
               storeId:      store.id,
               businessDate: date,
@@ -121,7 +121,7 @@ export async function GET(request: Request) {
               laborHours:   laborHours.toFixed(4),
             })
             .onConflictDoUpdate({
-              target: [dailyConsolidatedMetrics.storeId, dailyConsolidatedMetrics.businessDate],
+              target: [dailyConsolidatedMetricsRealtime.storeId, dailyConsolidatedMetricsRealtime.businessDate],
               set: {
                 netSales:   sales.netSalesAmount.toFixed(4),
                 grossSales: sales.grossSalesAmount.toFixed(4),

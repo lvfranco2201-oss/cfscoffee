@@ -112,3 +112,63 @@ export const dailyConsolidatedMetrics = pgTable('DailyConsolidatedMetrics', {
   uniqueDailyStore: unique().on(t.storeId, t.businessDate),
 }));
 
+// Tabla temporal en tiempo real para separar las inserciones del cron del ETL oficial
+export const dailyConsolidatedMetricsRealtime = pgTable('DailyConsolidatedMetricsRealtime', {
+  id:                   integer('Id').primaryKey().generatedAlwaysAsIdentity(),
+  storeId:              integer('StoreId').notNull(),
+  businessDate:         date('BusinessDate').notNull(),
+  netSales:             numeric('NetSales').default('0'),
+  grossSales:           numeric('GrossSales').default('0'),
+  discounts:            numeric('Discounts').default('0'),
+  voids:                numeric('Voids').default('0'),
+  refunds:              numeric('Refunds').default('0'),
+  avgOrderValue:        numeric('AvgOrderValue').default('0'),
+  guests:               bigint('Guests',        { mode: 'number' }).default(0),
+  orders:               bigint('Orders',        { mode: 'number' }).default(0),
+  openOrders:           bigint('OpenOrders',    { mode: 'number' }).default(0),
+  closedOrders:         bigint('ClosedOrders',  { mode: 'number' }).default(0),
+  voidCount:            bigint('VoidCount',     { mode: 'number' }).default(0),
+  discountCount:        bigint('DiscountCount', { mode: 'number' }).default(0),
+  laborCost:            numeric('LaborCost').default('0'),
+  laborHours:           numeric('LaborHours').default('0'),
+  salesPerLaborHour:    numeric('SalesPerLaborHour').default('0'),
+  tips:                 numeric('Tips').default('0'),
+  tax:                  numeric('Tax').default('0'),
+  visaPayments:         numeric('VisaPayments').default('0'),
+  mastercardPayments:   numeric('MastercardPayments').default('0'),
+  amexPayments:         numeric('AmexPayments').default('0'),
+  cashPayments:         numeric('CashPayments').default('0'),
+  otherPayments:        numeric('OtherPayments').default('0'),
+}, (t) => ({
+  uniqueDailyStoreRealtime: unique().on(t.storeId, t.businessDate),
+}));
+
+// Vista que combina ETL histórico con datos en tiempo real
+export const vwRealtimeConsolidatedMetrics = pgTable('vw_RealtimeConsolidatedMetrics', {
+  id:                   integer('Id').primaryKey(),
+  storeId:              integer('StoreId').notNull(),
+  businessDate:         date('BusinessDate').notNull(),
+  netSales:             numeric('NetSales'),
+  grossSales:           numeric('GrossSales'),
+  discounts:            numeric('Discounts'),
+  voids:                numeric('Voids'),
+  refunds:              numeric('Refunds'),
+  avgOrderValue:        numeric('AvgOrderValue'),
+  guests:               bigint('Guests',        { mode: 'number' }),
+  orders:               bigint('Orders',        { mode: 'number' }),
+  openOrders:           bigint('OpenOrders',    { mode: 'number' }),
+  closedOrders:         bigint('ClosedOrders',  { mode: 'number' }),
+  voidCount:            bigint('VoidCount',     { mode: 'number' }),
+  discountCount:        bigint('DiscountCount', { mode: 'number' }),
+  laborCost:            numeric('LaborCost'),
+  laborHours:           numeric('LaborHours'),
+  salesPerLaborHour:    numeric('SalesPerLaborHour'),
+  tips:                 numeric('Tips'),
+  tax:                  numeric('Tax'),
+  visaPayments:         numeric('VisaPayments'),
+  mastercardPayments:   numeric('MastercardPayments'),
+  amexPayments:         numeric('AmexPayments'),
+  cashPayments:         numeric('CashPayments'),
+  otherPayments:        numeric('OtherPayments'),
+});
+

@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
           SUM("VisaPayments"::numeric) + SUM("MastercardPayments"::numeric) +
             SUM("AmexPayments"::numeric) + SUM("OtherPayments"::numeric) AS "totalCard",
           SUM("CashPayments"::numeric) AS "totalCash"
-        FROM "DailyConsolidatedMetrics"
+        FROM "vw_RealtimeConsolidatedMetrics"
         WHERE "BusinessDate"::date BETWEEN ${fromDate}::date AND ${toDate}::date
           ${storeFilter}
       `),
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
           SUM("LaborCost"::numeric)  AS "totalLaborCost",
           SUM("LaborHours"::numeric) AS "totalLaborHours",
           SUM("Tips"::numeric)       AS "totalTips"
-        FROM "DailyConsolidatedMetrics"
+        FROM "vw_RealtimeConsolidatedMetrics"
         WHERE "BusinessDate"::date BETWEEN ${prevFrom}::date AND ${prevTo}::date
           ${storeFilter}
       `),
@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
           SUM(d."LaborCost"::numeric)::float      AS "laborCost",
           SUM(d."LaborHours"::numeric)::float     AS "laborHours",
           SUM(d."Tips"::numeric)::float           AS "tips"
-        FROM "DailyConsolidatedMetrics" d
+        FROM "vw_RealtimeConsolidatedMetrics" d
         JOIN "Stores" s ON s."Id" = d."StoreId"
         WHERE d."BusinessDate"::date BETWEEN ${fromDate}::date AND ${toDate}::date
           ${storeFilter}
@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
       // ── Ventas previas por sucursal (solo netSales para delta) ─────────────
       db.execute(sql`
         SELECT "StoreId" AS "storeId", SUM("NetSales"::numeric)::float AS "netSales"
-        FROM "DailyConsolidatedMetrics"
+        FROM "vw_RealtimeConsolidatedMetrics"
         WHERE "BusinessDate"::date BETWEEN ${prevFrom}::date AND ${prevTo}::date
           ${storeFilter}
         GROUP BY "StoreId"
@@ -225,7 +225,7 @@ export async function GET(req: NextRequest) {
             SUM("NetSales"::numeric)::float AS daily_net,
             SUM("Guests")::float            AS daily_guests,
             SUM("Orders")::float            AS daily_orders
-          FROM "DailyConsolidatedMetrics"
+          FROM "vw_RealtimeConsolidatedMetrics"
           WHERE "BusinessDate"::date >= (${lastDate}::date - INTERVAL '30 days')
             AND "BusinessDate"::date < ${lastDate}::date
             ${storeFilter}
@@ -244,7 +244,7 @@ export async function GET(req: NextRequest) {
           SUM("Tips"::numeric)::float                     AS "tips",
           SUM("Guests")::float                            AS "guests",
           SUM("Orders")::float                            AS "orders"
-        FROM "DailyConsolidatedMetrics"
+        FROM "vw_RealtimeConsolidatedMetrics"
         WHERE "BusinessDate"::date BETWEEN ${fromDate}::date AND ${toDate}::date
           ${storeFilter}
         GROUP BY "BusinessDate"::date
