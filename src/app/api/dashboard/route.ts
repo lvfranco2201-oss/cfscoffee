@@ -364,8 +364,19 @@ export async function GET(req: NextRequest) {
       avgOrders:   Number(avg30Row.avgOrders   ?? 0),
     };
 
+    // Determinar origen de datos
+    const todayET = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+    let dataSource = 'Mixto';
+    if (fromDate === toDate && toDate === todayET) {
+      dataSource = 'Tiempo Real';
+    } else if (toDate < todayET) {
+      dataSource = 'Histórico';
+    }
+
     return NextResponse.json({
       lastDate, fromDate, toDate, numDays,
+      dataSource,
+      lastFetchedAt: new Date().toISOString(),
       kpis,
       prevKpis,
       storesPerformance,

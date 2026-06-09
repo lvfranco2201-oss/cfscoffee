@@ -61,6 +61,8 @@ export interface DashboardUIProps {
   dailyTrend?: { date: string; netSales: number; grossSales: number; discounts: number; laborCost: number; grossProfit: number }[];
   numDays?: number;
   availableStores?: { id: string; name: string }[];
+  dataSource?: string;
+  lastFetchedAt?: string;
   onRefresh?: () => void;
   loading?: boolean;
 }

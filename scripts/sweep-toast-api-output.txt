@@ -1,0 +1,32 @@
+[Toast] Token renovado. Expira en 249 minutos.
+
+Testing GET /config/v2/alternatePaymentTypes ...
+Status: 403
+Error: {"status":403,"code":10010,"message":"You are not permitted to access this resource","messageKey":"You are not permitted to access this resource","fieldName":null,"link":"You are not permitted to acce
+
+Testing GET /config/v2/revenueCenters ...
+Status: 403
+Error: {"status":403,"code":10010,"message":"You are not permitted to access this resource","messageKey":"You are not permitted to access this resource","fieldName":null,"link":"You are not permitted to acce
+
+Testing GET /config/v2/diningOptions ...
+Status: 403
+Error: {"status":403,"code":10010,"message":"You are not permitted to access this resource","messageKey":"You are not permitted to access this resource","fieldName":null,"link":"You are not permitted to acce
+
+Testing GET /cashMgmt/v1/entries?businessDate=20260526 ...
+Status: 404
+Error: {"status":404,"code":10022,"message":"The service you requested is not available","requestId":"0ae07261-c4c9-4670-a3af-17e3b7642e2c"}
+
+
+Testing GET /cashMgmt/v1/drawers?businessDate=20260526 ...
+Status: 404
+Error: {"status":404,"code":10022,"message":"The service you requested is not available","requestId":"177d87e1-a839-4d22-953b-8b585a0a10fc"}
+
+
+Testing GET /payments/v1/alternatePayments?businessDate=20260526 ...
+Status: 404
+Error: {"status":404,"code":10022,"message":"The service you requested is not available","requestId":"8bdf4e53-b9fd-4558-93c5-4bfe67bc643d"}
+
+
+Testing GET /orders/v2/orders?businessDate=20260526 ...
+Status: 403
+Error: {"status":403,"code":10010,"message":"You are not permitted to access this resource","messageKey":"You are not permitted to access this resource","fieldName":null,"link":"You are not permitted to acce

@@ -395,12 +395,6 @@ export default function ControlUI() {
         {loading && <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite', color: 'var(--text-muted)' }} />}
       </div>
 
-      {/* ── Warning ── */}
-      <div style={{ padding: '11px 16px', borderRadius: 12, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.18)', color: 'var(--warning)', fontSize: '0.8rem', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <FileText size={15} style={{ flexShrink: 0 }} />
-        <div><strong>{t('control.data_warning_title')}</strong> — {t('control.data_warning_body')}</div>
-      </div>
-
       {/* ── KPI Cards ── */}
       <div className="grid-cols-4">
         {loading ? (

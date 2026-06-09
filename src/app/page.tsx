@@ -121,6 +121,8 @@ export default function DashboardPage() {
         dailyTrend={data.dailyTrend}
         numDays={data.numDays}
         availableStores={data.availableStores}
+        dataSource={data.dataSource}
+        lastFetchedAt={data.lastFetchedAt}
         onRefresh={() => fetchData()}
         loading={loading}
       />

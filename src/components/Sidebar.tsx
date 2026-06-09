@@ -2,7 +2,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BarChart3,
   Coffee,
@@ -90,16 +90,29 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true  },
-    { name: t('sidebar.control_pl'),       path: '/control',       icon: <FileText size={20} />,   enabled: true  },
-    { name: t('sidebar.presupuesto'),      path: '/presupuesto',   icon: <Target size={20} />,     enabled: true  },
-    { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: true },
-    { name: locale === 'en' ? 'Reports' : 'Reportes', path: '/reportes/sales-summary', icon: <FileText size={20} />, enabled: true },
-    { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: true },
-    { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: true },
-    { name: t('sidebar.clientes'),         path: '/clientes',      icon: <Users size={20} />,      enabled: true },
-    { name: t('sidebar.productos'),        path: '/productos',     icon: <Coffee size={20} />,     enabled: true },
+    { name: t('sidebar.dashboard'),        path: '/',              icon: <BarChart3 size={20} />,  enabled: true, group: 'overview'  },
+    { name: locale === 'en' ? 'Reports' : 'Reportes', path: '/reportes/sales-summary', icon: <FileText size={20} />, enabled: true, group: 'overview' },
+    { name: t('sidebar.control_pl'),       path: '/control',       icon: <FileText size={20} />,   enabled: true, group: 'financials'  },
+    { name: t('sidebar.presupuesto'),      path: '/presupuesto',   icon: <Target size={20} />,     enabled: true, group: 'financials'  },
+    { name: t('sidebar.ventas'),           path: '/ventas',        icon: <TrendingUp size={20} />, enabled: true, group: 'financials' },
+    { name: t('sidebar.sucursales'),       path: '/sucursales',    icon: <Store size={20} />,      enabled: true, group: 'operations' },
+    { name: t('sidebar.costos_laborales'), path: '/inventario',    icon: <Package size={20} />,    enabled: true, group: 'operations' },
+    { name: t('sidebar.clientes'),         path: '/clientes',      icon: <Users size={20} />,      enabled: true, group: 'operations' },
+    { name: t('sidebar.productos'),        path: '/productos',     icon: <Coffee size={20} />,     enabled: true, group: 'operations' },
   ];
+
+  const [activeAccordion, setActiveAccordion] = useState<string>('overview');
+
+  useEffect(() => {
+    const currentGroup = navItems.find(i => i.path === pathname)?.group;
+    if (currentGroup) {
+      setActiveAccordion(currentGroup);
+    }
+  }, [pathname, locale]); // added locale in case translations change dependencies but pathname is main
+
+  const toggleGroup = (groupKey: string) => {
+    setActiveAccordion(prev => prev === groupKey ? '' : groupKey);
+  };
 
   return (
     <aside className="sidebar">
@@ -121,25 +134,72 @@ export default function Sidebar() {
 
       {/* MENÚ PRINCIPAL */}
       <nav className={styles.nav}>
-        <div className={styles.navSection}>{t('sidebar.menu_principal')}</div>
+        {/* Enabled nav items by group */}
+        {['overview', 'financials', 'operations'].map((groupKey, index) => {
+          const groupItems = navItems.filter(i => i.enabled && i.group === groupKey);
+          if (groupItems.length === 0) return null;
 
-        {/* Enabled nav items */}
-        {navItems.filter(i => i.enabled).map((item) => {
-          const isActive = pathname === item.path;
+          const groupLabel =
+            groupKey === 'overview' ? (locale === 'en' ? 'OVERVIEW' : 'GENERAL') :
+            groupKey === 'financials' ? (locale === 'en' ? 'FINANCIALS' : 'FINANZAS') :
+            (locale === 'en' ? 'OPERATIONS' : 'OPERACIONES');
+
+          const isOpen = activeAccordion === groupKey;
+
           return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive ? '#DDA756' : '#94A3B8' }}>
-                {isActive && (
-                  <span style={{ position: 'absolute', inset: -4, background: 'rgba(221, 167, 86, 0.4)', filter: 'blur(8px)', borderRadius: '50%', zIndex: 0 }} />
-                )}
-                <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
+            <div key={groupKey} className={styles.accordionGroup}>
+              <button
+                onClick={() => toggleGroup(groupKey)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', background: 'transparent', border: 'none', cursor: 'pointer',
+                  padding: '8px', marginTop: index > 0 ? '4px' : '0'
+                }}
+              >
+                <span className={styles.navSection} style={{ margin: 0, padding: 0 }}>
+                  {groupLabel}
+                </span>
+                <ChevronDown
+                  size={14}
+                  style={{
+                    color: '#64748B',
+                    transition: 'transform 0.3s ease',
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </button>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                  maxHeight: isOpen ? `${groupItems.length * 52}px` : '0px',
+                  opacity: isOpen ? 1 : 0,
+                }}
+              >
+                {groupItems.map((item) => {
+                  const isActive = pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                    >
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive ? '#DDA756' : '#94A3B8' }}>
+                        {isActive && (
+                          <span style={{ position: 'absolute', inset: -4, background: 'rgba(221, 167, 86, 0.4)', filter: 'blur(8px)', borderRadius: '50%', zIndex: 0 }} />
+                        )}
+                        <div style={{ position: 'relative', zIndex: 1 }}>{item.icon}</div>
+                      </div>
+                      <span className={styles.navItemText}>{item.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
-              <span className={styles.navItemText}>{item.name}</span>
-            </Link>
+            </div>
           );
         })}
 

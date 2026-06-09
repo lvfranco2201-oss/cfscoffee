@@ -35,6 +35,7 @@ export default function DashboardUI(props: DashboardUIProps) {
     kpis, storesData, peakHours, paymentMethods,
     totalTips, totalLaborCost, totalLaborHours,
     dailyTrend = [], numDays = 1,
+    dataSource, lastFetchedAt,
     onRefresh, loading = false,
   } = props;
 
@@ -91,10 +92,23 @@ export default function DashboardUI(props: DashboardUIProps) {
                 {t('dashboard.title')}
               </h1>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem', fontWeight: 400, marginLeft: '14px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem', fontWeight: 400, marginLeft: '14px', marginBottom: '8px' }}>
               CFSCoffee · {t('dashboard.last_close')}&nbsp;
               <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'capitalize' }}>{m.dateFmt}</span>
             </p>
+            {/* Badges de Origen y Actualización */}
+            <div style={{ display: 'flex', gap: '8px', marginLeft: '14px', flexWrap: 'wrap' }}>
+              {dataSource && (
+                <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', padding: '4px 8px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: 'var(--cfs-gold)' }}>🗄️</span> Origen: <span style={{ fontWeight: 600 }}>{dataSource}</span>
+                </div>
+              )}
+              {lastFetchedAt && (
+                <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', padding: '4px 8px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: 'var(--info)' }}>🕒</span> Actualizado: <span style={{ fontWeight: 600 }}>{new Date(lastFetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>

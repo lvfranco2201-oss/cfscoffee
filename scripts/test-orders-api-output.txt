@@ -1,0 +1,11 @@
+[Toast] Token renovado. Expira en 251 minutos.
+Got token.
+Using Restaurant GUID: 0afe3ec3-9424-4571-a425-636f56193bd1
+Fetching orders: https://ws-api.toasttab.com/orders/v2/orders?businessDate=20260526
+Orders status: 403
+Orders error: {"status":403,"code":10010,"message":"You are not permitted to access this resource","messageKey":"You are not permitted to access this resource","fieldName":null,"link":"You are not permitted to access this resource","requestId":"6bab4cbe-12d4-4667-85cb-116f680c2714","developerMessage":null,"errors":[],"canRetry":null}
+
+Fetching payments directly: https://ws-api.toasttab.com/payments/v1/payments?businessDate=20260526
+Payments status: 404
+Payments error: {"status":404,"code":10022,"message":"The service you requested is not available","requestId":"a89580cb-5646-4f4c-8a07-14c9b88ab826"}
+

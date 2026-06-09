@@ -205,6 +205,19 @@
     gap: 2px;
     --sidebar-pill-display: none;
   }
+
+  .accordionGroup {
+    display: contents;
+  }
+
+  .accordionGroup > button {
+    display: none !important;
+  }
+
+  .accordionGroup > div {
+    display: contents;
+  }
+
   .navItem {
     flex-direction: column;
     padding: 6px 2px;

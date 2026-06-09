@@ -1,0 +1,32 @@
+CheckData Columns:
+[
+  { column_name: 'Id', data_type: 'bigint' },
+  { column_name: 'IsVoided', data_type: 'boolean' },
+  { column_name: 'CheckTotalAmount', data_type: 'numeric' },
+  { column_name: 'CheckDiscountAmount', data_type: 'numeric' },
+  { column_name: 'CheckTaxAmount', data_type: 'numeric' },
+  { column_name: 'CheckTipAmount', data_type: 'numeric' },
+  { column_name: 'CheckGratuityAmount', data_type: 'numeric' },
+  { column_name: 'CheckRefundAmount', data_type: 'numeric' },
+  { column_name: 'CreatedAt', data_type: 'timestamp with time zone' },
+  { column_name: 'UpdatedAt', data_type: 'timestamp with time zone' },
+  { column_name: 'OrderNumber', data_type: 'bigint' },
+  { column_name: 'CheckNumber', data_type: 'bigint' },
+  {
+    column_name: 'CheckPaidDateTime',
+    data_type: 'timestamp with time zone'
+  },
+  {
+    column_name: 'CheckModifiedDateTime',
+    data_type: 'timestamp with time zone'
+  },
+  { column_name: 'RestaurantGuid', data_type: 'character varying' },
+  { column_name: 'OrderGuid', data_type: 'character varying' },
+  { column_name: 'CheckGuid', data_type: 'character varying' },
+  { column_name: 'RestaurantName', data_type: 'character varying' },
+  { column_name: 'DiningOption', data_type: 'character varying' },
+  { column_name: 'BusinessDate', data_type: 'character varying' },
+  { column_name: 'RevenueCenter', data_type: 'character varying' },
+  { column_name: 'ServerName', data_type: 'character varying' },
+  { column_name: 'CheckStatus', data_type: 'character varying' }
+]
