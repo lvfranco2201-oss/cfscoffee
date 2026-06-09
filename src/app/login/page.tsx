@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Globe } from 'lucide-react';
@@ -14,6 +14,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isPreloading, setIsPreloading] = useState(true);
+
+  // Artificial preloader for premium feel
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPreloading(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // i18n strings (login page is always shown before the full app loads)
   const txt = {
@@ -79,6 +86,20 @@ export default function LoginPage() {
         zIndex: 0,
       }} />
 
+      {/* Elegant Grid */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px)
+        `,
+        backgroundSize: '32px 32px',
+        WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 70%)',
+        maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 70%)',
+        zIndex: 0,
+        pointerEvents: 'none'
+      }} />
+
       {/* Ambient glow */}
       <div style={{
         position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)',
@@ -116,6 +137,33 @@ export default function LoginPage() {
         ))}
       </div>
 
+      {/* Preloader */}
+      <div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 999999,
+          background: '#070b14',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          opacity: isPreloading ? 1 : 0,
+          pointerEvents: isPreloading ? 'auto' : 'none',
+          transition: 'opacity 0.8s cubic-bezier(0.65, 0, 0.35, 1)',
+        }}
+      >
+        <div style={{ position: 'relative', width: 140, height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Animated rings */}
+          <div style={{ position: 'absolute', inset: -10, borderRadius: '50%', border: '2px solid rgba(221,167,86,0.1)', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(221,167,86,0.3)', borderTopColor: 'var(--cfs-gold)', animation: 'spin 1.5s linear infinite' }} />
+          
+          <Image
+            src="/logo-cuadrado.png"
+            alt="CFS Coffee"
+            width={80}
+            height={80}
+            style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)', animation: 'pulse-glow 2s infinite ease-in-out' }}
+            priority
+          />
+      </div>
+      </div>
+
       {/* Login card */}
       <div
         style={{
@@ -128,7 +176,9 @@ export default function LoginPage() {
           border: '1px solid rgba(255,255,255,0.08)',
           boxShadow: '0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          animation: 'fade-in-up 0.5s ease',
+          opacity: isPreloading ? 0 : 1,
+          transform: isPreloading ? 'translateY(20px)' : 'translateY(0)',
+          transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s',
         }}
       >
         {/* Logo */}
@@ -259,16 +309,15 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Footer */}
-        <p style={{ marginTop: '2rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          {txt.footer}
-        </p>
       </div>
 
       <style>{`
         @keyframes fade-in-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
         @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes ping { 75%, 100% { transform: scale(1.4); opacity: 0; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+        @keyframes pulse-glow { 0%, 100% { filter: brightness(0) invert(1) drop-shadow(0 0 15px rgba(221,167,86,0.3)); transform: scale(1); } 50% { filter: brightness(0) invert(1) drop-shadow(0 0 25px rgba(221,167,86,0.6)); transform: scale(1.05); } }
       `}</style>
     </div>
   );
