@@ -63,10 +63,10 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
       <div className="grid-cols-5" style={{ marginBottom: '1.75rem' }}>
         {[
           { icon: <DollarSign size={18}/>, WM: DollarSign, col: 'var(--cfs-gold)', bg: 'var(--cfs-gold-dim)', label: 'Ventas Netas Hoy', val: fmt(data.kpi.netSales), sub: `Bruto: ${fmt(data.kpi.grossSales)}` },
-          { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'AOV Promedio', val: fmt(data.kpi.avgOrderValue), sub: `${data.kpi.orders.toLocaleString()} órdenes totales` },
+          { icon: <ShoppingCart size={18}/>, WM: ShoppingCart, col: 'var(--info)', bg: 'rgba(79,172,254,0.12)', label: 'AOV Promedio', val: fmt(data.kpi.avgOrderValue), sub: `${(data.kpi.orders || 0).toLocaleString()} órdenes totales` },
           { icon: <Percent size={18}/>, WM: Percent, col: discPct > 8 ? 'var(--warning)' : 'var(--success)', bg: discPct > 8 ? 'rgba(245,158,11,0.12)' : 'rgba(46,202,127,0.12)', label: 'Descuentos Hoy', val: fmt(data.kpi.discounts), sub: `${discPct.toFixed(1)}% del bruto · ${discOrderPct.toFixed(0)}% de órdenes` },
           { icon: <AlertTriangle size={18}/>, WM: AlertTriangle, col: voidPct > 2 ? 'var(--danger)' : 'var(--text-muted)', bg: 'rgba(239,68,68,0.08)', label: 'Voids Hoy', val: fmt(data.kpi.voids), sub: `${voidPct.toFixed(2)}% del bruto` },
-          { icon: <TrendingDown size={18}/>, WM: TrendingDown, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Órdenes con Descuento', val: data.kpi.discountOrders.toLocaleString(), sub: `${discOrderPct.toFixed(1)}% del total de órdenes` },
+          { icon: <TrendingDown size={18}/>, WM: TrendingDown, col: 'var(--text-muted)', bg: 'rgba(255,255,255,0.05)', label: 'Órdenes con Descuento', val: (data.kpi.discountOrders || 0).toLocaleString(), sub: `${discOrderPct.toFixed(1)}% del total de órdenes` },
         ].map((c, i) => (
           <div key={i} className="glass-card" style={{ padding: '1.3rem', position: 'relative', overflow: 'hidden' }}>
             <c.WM size={128} style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.04, transform: 'rotate(-10deg)', zIndex: 0, pointerEvents: 'none', color: 'var(--text-main)' }} />
@@ -99,7 +99,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                     <Pie data={data.byDiningOption} cx="50%" cy="50%" innerRadius={40} outerRadius={68} paddingAngle={4} cornerRadius={5} dataKey="netSales" stroke="none">
                       {data.byDiningOption.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
-                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${v.toLocaleString()}`, '']}/>
+                    <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any) => [`$${(v || 0).toLocaleString()}`, '']}/>
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -148,7 +148,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)"/>
                   <XAxis type="number" tickFormatter={v => `$${v}`} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)' }}/>
                   <YAxis dataKey="name" type="category" width={90} stroke="var(--text-muted)" tick={{ fontSize: 10, fill: 'var(--text-muted)', fontWeight: 600 }}/>
-                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any, n: any) => [n === 'ventas' ? `$${v.toLocaleString()}` : `$${v.toFixed(2)}`, n === 'ventas' ? 'Ventas' : 'AOV']}/>
+                  <Tooltip cursor={false} contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', fontSize: '0.75rem' }} formatter={(v: any, n: any) => [n === 'ventas' ? `$${(v || 0).toLocaleString()}` : `$${(v || 0).toFixed(2)}`, n === 'ventas' ? 'Ventas' : 'AOV']}/>
                   <Bar dataKey="ventas" radius={[0, 8, 8, 0]} barSize={14}>
                     {data.byOrderSource.slice(0, 7).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Bar>
@@ -187,7 +187,7 @@ export default function ProductosUI({ data }: { data: ProductosData }) {
                       <div style={{ width: `${pct}%`, height: '100%', background: COLORS[i % COLORS.length], borderRadius: '6px', opacity: 0.85 }} />
                     </div>
                     <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '10px' }}>
-                      <span>{d.orders.toLocaleString()} órdenes</span>
+                      <span>{(d.orders || 0).toLocaleString()} órdenes</span>
                       <span>AOV: {fmt(d.avgOrderValue)}</span>
                     </div>
                   </div>
